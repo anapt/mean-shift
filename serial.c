@@ -30,8 +30,8 @@ int main(int argc, char **argv){
     for (int i=0; i<ROWS; i++){
         int out = fread(vectors[i], sizeof(double), COLUMNS, f);
     }
-    //printf("test : %f \n", vectors[0][0]);
-    //printf("test : %f \n", vectors[ROWS-1][COLUMNS-1]);
+
+    save_matrix(vectors, 0);
 
     // initializing file that will contain the labels (train)
     f = fopen(L, "rb");
@@ -49,11 +49,11 @@ int main(int argc, char **argv){
 
     // MEAN SHIFT OPTIONS
     int h = 1;
-    struct parameters params;
+    parameters params;
     params.epsilon = 0.0001;
     params.verbose = false;
     params.display = false;
-    struct parameters *opt;
+    parameters *opt;
     opt = &params;
 
     // tic
