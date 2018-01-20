@@ -9,7 +9,7 @@
 #define ROWS        600
 
 struct parameters {
-    double epsilom;
+    double epsilon;
     bool verbose;
     bool display;
 };

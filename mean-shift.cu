@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <stdbool.h>
+#include <math.h>
 
 #define X "data/X.bin"
 #define L "data/L.bin"
@@ -112,6 +113,8 @@ void meanshift(double **x, int h, struct parameters *opt){
 
     /** iterate until convergence **/
     // printf("norm : %f \n", norm(m, ROWS, COLUMNS));
+
+
 
     while (norm(m, ROWS, COLUMNS) > opt->epsilon) {
         iter = iter +1;
@@ -258,3 +261,5 @@ void print_matrix(double ** array, int rows, int cols){
         printf("\n");
     }
 }
+
+__global__ void

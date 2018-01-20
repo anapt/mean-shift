@@ -24,17 +24,19 @@ void meanshift(double **x, int h, struct parameters *opt){
     // initialize iteration counter
     int iter = 0;
 
-    // printf("%f \n", opt->epsilom);
+    // printf("%f \n", opt->epsilon);
+
+    double ** W = alloc_2d_double(ROWS, ROWS);
+    double * l = malloc(ROWS * sizeof(double));
 
     /** iterate until convergence **/
     // printf("norm : %f \n", norm(m, ROWS, COLUMNS));
 
-    while (norm(m, ROWS, COLUMNS) > opt->epsilom) {
+    while (norm(m, ROWS, COLUMNS) > opt->epsilon) {
         iter = iter +1;
         // find pairwise distance matrix (inside radius)
         /** allocate memory for inside iteration arrays **/
-        double ** W = alloc_2d_double(ROWS, ROWS);
-        double * l = malloc(ROWS * sizeof(double));
+
         // [I, D] = rangesearch(x,y,h);
         for (int i=0; i<ROWS; i++){
             for (int j=0; j<ROWS; j++){
@@ -154,7 +156,7 @@ double calculateDistance(double *y, double *x){
 
 void multiply(double ** matrix1, double ** matrix2, double ** output){
     // W dims are ROWS ROWS and x dims are ROWS COLUMNS
-    
+
     int i, j, k;
     for (i=0; i<ROWS; i++){
         for (j=0; j<COLUMNS; j++){
