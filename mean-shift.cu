@@ -113,7 +113,25 @@ void meanshift(double **x, int h, struct parameters *opt){
 
     /** iterate until convergence **/
     // printf("norm : %f \n", norm(m, ROWS, COLUMNS));
+    /** allocate memory **/
+    double ** W = alloc_2d_double(ROWS, ROWS);
+    double * l = malloc(ROWS * sizeof(double));
 
+    double * d_W;
+    cudaMalloc(&d_W, ROWS * ROWS * sizeof(double));
+    double * d_I;
+    cudaMalloc(&d_I, ROWS * sizeof(double));
+    double * d_y_new;
+    cudaMalloc(&d_y_new, ROWS * COLUMNS * sizeof(double));
+
+    double * d_y;
+    cudaMalloc(&d_y, ROWS * COLUMNS * sizeof(double));
+    double * d_m;
+    cudaMalloc(&d_m, ROWS * COLUMNS * sizeof(double));
+
+    //Copy vectors from host memory to device memory
+    cudaMemcpy(d_y, y, ROWS * COLUMNS * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_m, m, ROWS * COLUMNS * sizeof(double), cudaMemcpyHostToDevice);
 
 
     while (norm(m, ROWS, COLUMNS) > opt->epsilon) {
@@ -262,4 +280,88 @@ void print_matrix(double ** array, int rows, int cols){
     }
 }
 
-__global__ void
+__global__ void iteration (double norm, double epsilon){
+    // TODO check if they also need cudamalloc
+    int iter;
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    int j = blockDim.x * blockIdx.x + threadIdx.x;
+    while (norm > epsilon){
+        // TODO ITERATION
+        iter = iter +1;
+        // find pairwise distance matrix (inside radius)
+        /** allocate memory for inside iteration arrays **/
+        // TODO ALLOCATE MEMORY BEFORE CALLING KERNEL
+//        double ** W = alloc_2d_double(ROWS, ROWS);
+//        double * l = malloc(ROWS * sizeof(double));
+        // [I, D] = rangesearch(x,y,h);
+        for (int i=0; i<ROWS; i++){
+            for (int j=0; j<ROWS; j++){
+                // TODO REFACTOR CALCULATE DISTANCE
+                double dist = calculateDistance(y[i],x[j]);
+
+                // 2sparse matrix
+                if (dist < h){
+                    W[i][j] = dist;
+                    //printf("%f \n", W[i][j]);
+                }else{
+                    W[i][j] = 0;
+                }
+            }
+        }
+
+
+        // for each element of W (x) do x^2
+        // size of W is [600 600]
+        // W is a sparse matrix -> apply to non-zero elements
+        for (int i=0; i<ROWS; i++){
+            double sum =0;
+            for (int j=0; j < ROWS; j++){
+                if (W[i][j] != 0){
+                    W[i][j] = W[i][j]*W[i][j];
+                    // compute kernel matrix
+                    // apply function to non zero elements of a sparse matrix
+                    double pow = ((-1)*(W[i][j]))/(2*(h*h));
+                    W[i][j] = exp(pow);
+                }
+                // make sure diagonal elements are 1
+                if (i==j){
+                    W[i][j] = W[i][j] +1;
+                }
+                // calculate sum(W,2)
+                sum = sum + W[i][j];
+            }
+            /** l array is correct**/
+            l[i] = sum;
+            // printf("l[%d] : %f \n", i, l[i]);
+        }
+        /** W is correct**/
+        //print_matrix(W, ROWS, ROWS);
+
+
+        // create new y vector
+        double** y_new = alloc_2d_double(ROWS, COLUMNS);
+
+        multiply(W, x, y_new);
+        /** y_new is CORRECT **/
+        // print_matrix(y_new, ROWS, COLUMNS);
+        // divide element-wise
+        for (int i=0; i<ROWS; i++){
+            for (int j=0; j<COLUMNS; j++){
+                y_new[i][j] = y_new[i][j] / l[i];
+            }
+        }
+
+        // calculate mean-shift vector
+        for (int i=0; i<ROWS; i++){
+            for (int j=0; j<COLUMNS; j++){
+                m[i][j] = y_new[i][j] - y[i][j];
+
+                // update y
+                y[i][j] = y_new[i][j];
+            }
+        }
+
+        printf("Iteration n. %d, error %f \n", iter, norm(m, ROWS, COLUMNS));
+        // TODO maybe keep y for live display later?
+    }
+}
