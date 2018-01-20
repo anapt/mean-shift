@@ -91,18 +91,13 @@ void meanshift(double **x, int h, struct parameters *opt){
         for (int i=0; i<ROWS; i++){
             for (int j=0; j<COLUMNS; j++){
                 y_new[i][j] = y_new[i][j] / l[i];
-            }
-        }
-
-        // calculate mean-shift vector
-        for (int i=0; i<ROWS; i++){
-            for (int j=0; j<COLUMNS; j++){
+                // calculate mean-shift vector
                 m[i][j] = y_new[i][j] - y[i][j];
-
                 // update y
                 y[i][j] = y_new[i][j];
             }
         }
+
 
         printf("Iteration n. %d, error %f \n", iter, norm(m, ROWS, COLUMNS));
         // TODO maybe keep y for live display later?
