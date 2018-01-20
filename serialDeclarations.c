@@ -25,22 +25,19 @@ void meanshift(double **x, int h, struct parameters *opt){
     int iter = 0;
 
     // printf("%f \n", opt->epsilom);
-    // TODO ITERATION
+
     /** iterate until convergence **/
     // printf("norm : %f \n", norm(m, ROWS, COLUMNS));
 
     while (norm(m, ROWS, COLUMNS) > opt->epsilom) {
-//    while (iter < 1){
         iter = iter +1;
         // find pairwise distance matrix (inside radius)
-        // TODO write in C
         /** allocate memory for inside iteration arrays **/
         double ** W = alloc_2d_double(ROWS, ROWS);
         double * l = malloc(ROWS * sizeof(double));
         // [I, D] = rangesearch(x,y,h);
         for (int i=0; i<ROWS; i++){
             for (int j=0; j<ROWS; j++){
-                // TODO implement function to calculate distance calculateDistance(double *, double *)
                 double dist = calculateDistance(y[i],x[j]);
 
                 // 2sparse matrix
@@ -84,9 +81,7 @@ void meanshift(double **x, int h, struct parameters *opt){
 
         // create new y vector
         double** y_new = alloc_2d_double(ROWS, COLUMNS);
-        // TODO implement in C : y_new = W * x
 
-        // TODO implement function double ** multiply(double **, double **)
         multiply(W, x, y_new);
         /** y_new is CORRECT **/
         // print_matrix(y_new, ROWS, COLUMNS);
@@ -159,7 +154,7 @@ double calculateDistance(double *y, double *x){
 
 void multiply(double ** matrix1, double ** matrix2, double ** output){
     // W dims are ROWS ROWS and x dims are ROWS COLUMNS
-    // TODO CHECK
+    
     int i, j, k;
     for (i=0; i<ROWS; i++){
         for (j=0; j<COLUMNS; j++){
