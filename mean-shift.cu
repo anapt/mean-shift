@@ -131,6 +131,7 @@ void meanshift(double **x, int h, struct parameters *opt){
 
     //Copy vectors from host memory to device memory
     cudaMemcpy(d_y, y, ROWS * COLUMNS * sizeof(double), cudaMemcpyHostToDevice);
+    // y[i][j] == d_y[COLUMNS*i + j]
     cudaMemcpy(d_m, m, ROWS * COLUMNS * sizeof(double), cudaMemcpyHostToDevice);
 
 
@@ -280,8 +281,9 @@ void print_matrix(double ** array, int rows, int cols){
     }
 }
 
-__global__ void iteration (double norm, double epsilon){
+__global__ void iteration (double* W, double epsilon){
     // TODO check if they also need cudamalloc
+    // todo find how to keep counter
     int iter;
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     int j = blockDim.x * blockIdx.x + threadIdx.x;
