@@ -6,8 +6,8 @@ SHELL := /bin/bash
 CC = gcc
 RM = rm -f
 CFLAGS=-lm -O3 -Wall -I.
-OBJ=serial.o serialDeclarations.o
-DEPS=serialDeclarations.h
+OBJ=serial.o serial_declarations.o
+DEPS=serial_declarations.h
 
 # ==========================================
 # TARGETS

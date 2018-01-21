@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include "serialDeclarations.h"
+#include "serial_declarations.h"
 
 int NUMBER_OF_POINTS = 600;
 int DIMENSIONS = 2;
@@ -56,11 +56,11 @@ int main(int argc, char **argv){
     parameters *opt;
     opt = &params;
 
-    double **shiftedPoints;
+    double **shifted_points;
     // tic
     gettimeofday (&startwtime, NULL);
 
-    int iterations = meanshift(vectors, &shiftedPoints, h, opt, 1);
+    int iterations = meanshift(vectors, &shifted_points, h, opt, 1);
 
     // toc
     gettimeofday (&endwtime, NULL);
