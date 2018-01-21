@@ -4,7 +4,7 @@
 #include <float.h>
 #include <string.h>
 
-#include "serial_declarations.h"
+#include "meanshift_declarations.h"
 
 void get_args(int argc, char **argv, int *h){
     if (argc != 6) {
@@ -45,14 +45,20 @@ int meanshift(double **original_points, double ***shifted_points, int h
 
     double **kernel_matrix = alloc_2d_double(NUMBER_OF_POINTS, NUMBER_OF_POINTS);
     double *denominator = malloc(NUMBER_OF_POINTS * sizeof(double));
+    // create new y vector
+    double **new_shift = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
 
     // find pairwise distance matrix (inside radius)
     // [I, D] = rangesearch(x,y,h);
     for (int i=0; i<NUMBER_OF_POINTS; i++){
         double sum = 0;
         for (int j=0; j<NUMBER_OF_POINTS; j++){
-            double dist = calculateDistance((*shifted_points)[i]
-                , original_points[j]);
+            double dist_sum = 0;
+            for (int p=0; p<DIMENSIONS; p++){
+                double dif = ((*shifted_points)[i])[p]-(original_points[j])[p];
+                dist_sum += dif * dif;
+            }
+            double dist = sqrt(dist_sum);
 
             if (dist < h*h){
                 kernel_matrix[i][j] = dist * dist;
@@ -62,26 +68,26 @@ int meanshift(double **original_points, double ***shifted_points, int h
             } else {
                 kernel_matrix[i][j] = 0;
             }
-            if (i == j){
+            if (i==j){
                 kernel_matrix[i][j] += 1;
             }
             sum = sum + kernel_matrix[i][j];
         }
         denominator[i] = sum;
-    }
 
-    // create new y vector
-    double **new_shift = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
-    // build nominator
-    multiply(kernel_matrix, original_points, new_shift);
-    // divide element-wise
-    for (int i=0; i<NUMBER_OF_POINTS; i++){
+        // build nominator
         for (int j=0; j<DIMENSIONS; j++){
+            new_shift[i][j] = 0;
+            for (int k=0; k<NUMBER_OF_POINTS; k++){
+                new_shift[i][j] += kernel_matrix[i][k] * original_points[k][j];
+            }
+            // divide element-wise
             new_shift[i][j] = new_shift[i][j] / denominator[i];
             // calculate mean-shift vector at the same time
             mean_shift_vector[i][j] = new_shift[i][j] - (*shifted_points)[i][j];
         }
     }
+
 
     // frees previously shifted points, they're now garbage
     free((*shifted_points)[0]);
@@ -119,30 +125,6 @@ double norm(double **matrix, int rows, int cols){
     }
     double norm = sqrt(sum);
     return norm;
-}
-
-void multiply(double **matrix1, double **matrix2, double **output){
-    // W dims are NUMBER_OF_POINTS NUMBER_OF_POINTS
-    // and x dims are NUMBER_OF_POINTS DIMENSIONS
-
-    for (int i=0; i<NUMBER_OF_POINTS; i++){
-        for (int j=0; j<DIMENSIONS; j++){
-            output[i][j] = 0;
-            for (int k=0; k<NUMBER_OF_POINTS; k++){
-                output[i][j] += matrix1[i][k] * matrix2[k][j];
-            }
-        }
-    }
-}
-
-double calculateDistance(double *y, double *x){
-    double sum = 0, dif;
-    for (int i=0; i<DIMENSIONS; i++){
-        dif = y[i]-x[i];
-        sum += dif * dif;
-    }
-    double distance = sqrt(sum);
-    return distance;
 }
 
 double **alloc_2d_double(int rows, int cols) {
