@@ -4,17 +4,18 @@
 
 #include "serialDeclarations.h"
 
+int NUMBER_OF_POINTS = 600;
+int DIMENSIONS = 2;
+char* POINTS_FILENAME = "data/X.bin";
+char* LABELS_FILENAME = "data/L.bin";
+
 struct timeval startwtime, endwtime;
 double seq_time;
 
 int main(int argc, char **argv){
+	int h = 1;
 
-//    if (argc<2){
-//        printf("%s\n", "Specify the k");
-//        return 1;
-//    }
-//    = atoi(argv[1]);  // the k-parameter
-
+	//get_args(argc, argv, &h); commented out while in development
 
     FILE *f;
 //    f = fopen(X, "rb");
@@ -22,19 +23,19 @@ int main(int argc, char **argv){
 //    long int pos = ftell(f);
 //    fclose(f);
 //    int elements = pos / sizeof(double);  // number of total elements (points*dimension)
-//    int points = elements/COLUMNS;
+//    int points = elements/DIMENSIONS;
 //    //printf("points : %d \n", points);
-    f = fopen(X, "rb");
-    double ** vectors;
-    vectors = alloc_2d_double(ROWS, COLUMNS);
-    for (int i=0; i<ROWS; i++){
-        int out = fread(vectors[i], sizeof(double), COLUMNS, f);
+    f = fopen(POINTS_FILENAME, "rb");
+    double **vectors;
+    vectors = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
+    for (int i=0; i<NUMBER_OF_POINTS; i++){
+        int out = fread(vectors[i], sizeof(double), DIMENSIONS, f);
     }
 
     save_matrix(vectors, 0);
 
     // initializing file that will contain the labels (train)
-    f = fopen(L, "rb");
+    f = fopen(LABELS_FILENAME, "rb");
     // NOTE : Labels were classified as <class 'numpy.uint8'>
     // variables of type uint8 are stored as 1-byte (8-bit) unsigned integers
     fseek(f, 0L, SEEK_END);
@@ -48,7 +49,6 @@ int main(int argc, char **argv){
     fclose(f);
 
     // MEAN SHIFT OPTIONS
-    int h = 1;
     parameters params;
     params.epsilon = 0.0001;
     params.verbose = false;
@@ -56,10 +56,11 @@ int main(int argc, char **argv){
     parameters *opt;
     opt = &params;
 
+    double **shiftedPoints;
     // tic
     gettimeofday (&startwtime, NULL);
 
-    meanshift(vectors, h, opt);
+    int iterations = meanshift(vectors, &shiftedPoints, h, opt, 1);
 
     // toc
     gettimeofday (&endwtime, NULL);
@@ -67,5 +68,5 @@ int main(int argc, char **argv){
     printf("%s wall clock time = %f\n","Mean Shift", seq_time);
 
     //TODO write output points to file -> plot later
-
+    //save_matrix(vectors, iterations);
 }

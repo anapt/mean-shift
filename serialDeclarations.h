@@ -3,10 +3,10 @@
 
 #include <stdbool.h>
 
-#define X "data/X.bin"
-#define L "data/L.bin"
-#define COLUMNS     2
-#define ROWS        600
+extern int NUMBER_OF_POINTS;
+extern int DIMENSIONS;
+extern char* POINTS_FILENAME;
+extern char* LABELS_FILENAME;
 
 typedef struct parameters {
     double epsilon;
@@ -14,7 +14,9 @@ typedef struct parameters {
     bool display;
 } parameters;
 
-void meanshift(double **x, int h, struct parameters *opt);
+void get_args(int argc, char **argv, int *h);
+int meanshift(double **originalPoints, double ***shiftedPoints, int h
+    , parameters *opt, int iteration);
 double norm(double ** m, int rows, int cols);
 void multiply(double ** matrix1, double ** matrix2, double ** output);
 double calculateDistance(double *, double *);

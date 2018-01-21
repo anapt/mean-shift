@@ -6,76 +6,94 @@
 
 #include "serialDeclarations.h"
 
-void meanshift(double **originalPoints, int h, parameters *opt){
+void get_args(int argc, char **argv, int *h){
+    if (argc != 6) {
+        printf("Usage: %s h N D Pd Pl\nwhere:\n", argv[0]);
+        printf("\th is the variance\n");
+        printf("\tN is the the number of points\n");
+        printf("\tD is the number of dimensions of each point\n");
+        printf("\tPd is the path of the dataset file\n");
+        printf("\tPl is the path of the labels file\n");
+        exit(1);
+    }
 
-    double **y;
-    y = alloc_2d_double(ROWS, COLUMNS);
-    y = duplicate(originalPoints, y, ROWS, COLUMNS);
+    *h = atoi(argv[1]);
+    NUMBER_OF_POINTS = atoi(argv[2]);
+    DIMENSIONS = atoi(argv[3]);
+    POINTS_FILENAME = argv[4];
+    LABELS_FILENAME = argv[5];
+}
+
+int meanshift(double **originalPoints, double ***shiftedPoints, int h
+    , parameters *opt, int iteration){
+
+    // allocates space and copies original points on first iteration
+    if (iteration == 1){
+        (*shiftedPoints) = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
+        (*shiftedPoints) = duplicate(originalPoints, (*shiftedPoints)
+            , NUMBER_OF_POINTS, DIMENSIONS);
+    }
 
     // mean shift vector
     double **meanShiftVector;
-    meanShiftVector = alloc_2d_double(ROWS, COLUMNS);
+    meanShiftVector = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
     // initialize elements of meanShiftVector to inf
-    for (int i=0;i<ROWS;i++){
-        for (int j=0;j<COLUMNS;j++){
+    for (int i=0;i<NUMBER_OF_POINTS;i++){
+        for (int j=0;j<DIMENSIONS;j++){
             meanShiftVector[i][j] = DBL_MAX;
         }
     }
 
-    // initialize iteration counter
-    int iter = 0;
+    double **kernelMatrix = alloc_2d_double(NUMBER_OF_POINTS, NUMBER_OF_POINTS);
+    double *denominator = malloc(NUMBER_OF_POINTS * sizeof(double));
 
-    // printf("%f \n", opt->epsilon);
+    // find pairwise distance matrix (inside radius)
+    // [I, D] = rangesearch(x,y,h);
+    for (int i=0; i<NUMBER_OF_POINTS; i++){
+        double sum =0;
+        for (int j=0; j<NUMBER_OF_POINTS; j++){
+            double dist = calculateDistance((*shiftedPoints)[i],originalPoints[j]);
 
-    double ** kernelMatrix = alloc_2d_double(ROWS, ROWS);
-    double *denominator = malloc(ROWS * sizeof(double));
+            if (i == j){
+                kernelMatrix[i][j] = 1;
+            } else if (dist < h*h){
+                kernelMatrix[i][j] = dist * dist;
+                // compute kernel matrix
+                double pow = ((-1)*(kernelMatrix[i][j]))/(2*(h*h));
+                kernelMatrix[i][j] = exp(pow);
+            } else {
+                kernelMatrix[i][j] = 0;
+            }
+            sum = sum + kernelMatrix[i][j];
+        }
+        denominator[i] = sum;
+    }
+
+    // create new y vector
+    double **y_new = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
+
+    multiply(kernelMatrix, originalPoints, y_new);
+    // divide element-wise
+    for (int i=0; i<NUMBER_OF_POINTS; i++){
+        for (int j=0; j<DIMENSIONS; j++){
+            y_new[i][j] = y_new[i][j] / denominator[i];
+            // calculate mean-shift vector
+            meanShiftVector[i][j] = y_new[i][j] - (*shiftedPoints)[i][j];
+        }
+    }
+    shiftedPoints = &y_new;
+
+    save_matrix((*shiftedPoints), iteration);
+
+    double current_norm = norm(meanShiftVector, NUMBER_OF_POINTS, DIMENSIONS);
+    printf("Iteration n. %d, error %f \n", iteration, current_norm);
 
     /** iterate until convergence **/
-    // printf("norm : %f \n", norm(m, ROWS, COLUMNS));
-    while (norm(meanShiftVector, ROWS, COLUMNS) > opt->epsilon) {
-        iter = iter +1;
-        // find pairwise distance matrix (inside radius)
-        // [I, D] = rangesearch(x,y,h);
-        for (int i=0; i<ROWS; i++){
-            double sum =0;
-            for (int j=0; j<ROWS; j++){
-                double dist = calculateDistance(y[i],originalPoints[j]);
-
-                if (i == j){
-                    kernelMatrix[i][j] = 1;
-                } else if (dist < h*h){
-                    kernelMatrix[i][j] = dist * dist;
-                    // compute kernel matrix
-                    double pow = ((-1)*(kernelMatrix[i][j]))/(2*(h*h));
-                    kernelMatrix[i][j] = exp(pow);
-                } else {
-                    kernelMatrix[i][j] = 0;
-                }
-                sum = sum + kernelMatrix[i][j];
-            }
-            denominator[i] = sum;
-        }
-
-        // create new y vector
-        double** y_new = alloc_2d_double(ROWS, COLUMNS);
-
-        multiply(kernelMatrix, originalPoints, y_new);
-        // divide element-wise
-        for (int i=0; i<ROWS; i++){
-            for (int j=0; j<COLUMNS; j++){
-                y_new[i][j] = y_new[i][j] / denominator[i];
-                // calculate mean-shift vector
-                meanShiftVector[i][j] = y_new[i][j] - y[i][j];
-                // update y
-                y[i][j] = y_new[i][j];
-            }
-        }
-
-        save_matrix(y, iter);
-
-        printf("Iteration n. %d, error %f \n", iter, norm(meanShiftVector, ROWS, COLUMNS));
-        // TODO maybe keep y for live display later?
+    if (current_norm > opt->epsilon) {
+        return meanshift(originalPoints, shiftedPoints, h, opt, ++iteration);
     }
+
+    return iteration;
 }
 
 // TODO check why there's is a difference in the norm calculate in matlab
@@ -92,12 +110,13 @@ double norm(double **matrix, int rows, int cols){
 }
 
 void multiply(double **matrix1, double **matrix2, double **output){
-    // W dims are ROWS ROWS and x dims are ROWS COLUMNS
+    // W dims are NUMBER_OF_POINTS NUMBER_OF_POINTS
+    // and x dims are NUMBER_OF_POINTS DIMENSIONS
 
-    for (int i=0; i<ROWS; i++){
-        for (int j=0; j<COLUMNS; j++){
+    for (int i=0; i<NUMBER_OF_POINTS; i++){
+        for (int j=0; j<DIMENSIONS; j++){
             output[i][j] = 0;
-            for (int k=0; k<ROWS; k++){
+            for (int k=0; k<NUMBER_OF_POINTS; k++){
                 output[i][j] += matrix1[i][k] * matrix2[k][j];
             }
         }
@@ -106,7 +125,7 @@ void multiply(double **matrix1, double **matrix2, double **output){
 
 double calculateDistance(double *y, double *x){
     double sum = 0, dif;
-    for (int i=0; i<COLUMNS; i++){
+    for (int i=0; i<DIMENSIONS; i++){
         dif = y[i]-x[i];
         sum += dif * dif;
     }
@@ -142,15 +161,15 @@ void print_matrix(double **array, int rows, int cols){
     }
 }
 
-void save_matrix(double **matrix,int iteration){
+void save_matrix(double **matrix, int iteration){
     char filename[18];
     snprintf(filename, sizeof(filename), "%s%d", "output/output_", iteration);
     FILE *iterOutput;
     iterOutput = fopen(filename, "w");
-    for (int rows=0; rows<ROWS; ++rows){
-        for (int cols=0; cols<COLUMNS; ++cols){
+    for (int rows=0; rows<NUMBER_OF_POINTS; ++rows){
+        for (int cols=0; cols<DIMENSIONS; ++cols){
             fprintf(iterOutput, "%f", matrix[rows][cols]);
-            if (cols != COLUMNS - 1){
+            if (cols != DIMENSIONS - 1){
                 fprintf(iterOutput, ",");
             }
         }
