@@ -70,23 +70,34 @@ int meanshift(double **original_points, double ***shifted_points, int h
     }
 
     // create new y vector
-    double **y_new = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
-
-    multiply(kernel_matrix, original_points, y_new);
+    double **new_shift = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
+    // build nominator
+    multiply(kernel_matrix, original_points, new_shift);
     // divide element-wise
     for (int i=0; i<NUMBER_OF_POINTS; i++){
         for (int j=0; j<DIMENSIONS; j++){
-            y_new[i][j] = y_new[i][j] / denominator[i];
-            // calculate mean-shift vector
-            mean_shift_vector[i][j] = y_new[i][j] - (*shifted_points)[i][j];
+            new_shift[i][j] = new_shift[i][j] / denominator[i];
+            // calculate mean-shift vector at the same time
+            mean_shift_vector[i][j] = new_shift[i][j] - (*shifted_points)[i][j];
         }
     }
-    shifted_points = &y_new;
+
+    // frees previously shifted points, they're now garbage
+    free((*shifted_points)[0]);
+    // updates shifted points pointer to the new array address
+    shifted_points = &new_shift;
 
     save_matrix((*shifted_points), iteration);
 
     double current_norm = norm(mean_shift_vector, NUMBER_OF_POINTS, DIMENSIONS);
     printf("Iteration n. %d, error %f \n", iteration, current_norm);
+
+    // clean up this iteration's allocates
+    free(mean_shift_vector[0]);
+    free(mean_shift_vector);
+    free(kernel_matrix[0]);
+    free(kernel_matrix);
+    free(denominator);
 
     /** iterate until convergence **/
     if (current_norm > opt->epsilon) {

@@ -68,5 +68,5 @@ int main(int argc, char **argv){
     printf("%s wall clock time = %f\n","Mean Shift", seq_time);
 
     //TODO write output points to file -> plot later
-    //save_matrix(vectors, iterations);
+    //save_matrix(shifted_points, iterations);
 }

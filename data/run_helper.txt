@@ -1,0 +1,46 @@
+Dataset X {
+	int NUMBER_OF_POINTS = 600;
+	int DIMENSIONS = 2;
+	char* POINTS_FILENAME = "data/X.bin";
+	
+	A good h is 1
+	For Processing script:
+		float maxX = 17.124000;
+		float minX = 3.402000;
+		float maxY = 14.996000;
+		float minY = 3.178000;
+
+	12 iterations
+}
+
+Dataset s1 {
+	int NUMBER_OF_POINTS = 5000;
+	int DIMENSIONS = 2;
+	char* POINTS_FILENAME = "data/s1";
+	
+	A good h is 30000
+	For Processing script:
+		float maxX = 961951;
+		float minX = 19835;
+		float maxY = 970756;
+		float minY = 51121;
+
+	~28 iterations
+}
+
+Dataset s4 {
+	int NUMBER_OF_POINTS = 5000;
+	int DIMENSIONS = 2;
+	char* POINTS_FILENAME = "data/s4";
+	
+	A good h is 30000-35000
+	For Processing script:
+		float maxX = 932954;
+		float minX = 89604;
+		float maxY = 977215;
+		float minY = 35412;
+
+	122 iterations with epsilon = 0.0001 and h = 30000
+	110 iterations with epsilon = 0.01 and h = 30000
+	108 iterations with epsilon = 1 and h = 31000
+}
