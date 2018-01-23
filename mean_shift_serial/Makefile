@@ -12,7 +12,7 @@ DEPS=serial_declarations.h
 # ==========================================
 # TARGETS
 
-EXECUTABLES = serial mean-shift
+EXECUTABLES = serial
 
 .PHONY: all clean
 

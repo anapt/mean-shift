@@ -4,7 +4,9 @@
 #include <math.h>
 #include <float.h>
 
-#include "serial_declarations.h"
+#include <cuda_runtime.h>
+
+#include "meanshift_declarations.h"
 #define N       512
 
 int NUMBER_OF_POINTS = 600;
