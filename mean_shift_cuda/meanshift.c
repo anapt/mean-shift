@@ -11,14 +11,11 @@
 
 int NUMBER_OF_POINTS = 600;
 int DIMENSIONS = 2;
-char* POINTS_FILENAME = "data/X.bin";
-char* LABELS_FILENAME = "data/L.bin";
+char* POINTS_FILENAME = "../data/X.bin";
+char* LABELS_FILENAME = "../data/L.bin";
 
 struct timeval startwtime, endwtime;
 double seq_time;
-
-int meanshift(double **original_points, double ***shifted_points, int h
-        , parameters *opt, int iteration);
 
 __device__ double norm(double **matrix, int rows, int cols){
 
@@ -91,8 +88,6 @@ int main(int argc, char **argv){
     //TODO write output points to file -> plot later
     //save_matrix(shifted_points, iterations);
 }
-
-
 
 int meanshift(double **original_points, double ***shifted_points, int h
         , parameters *opt, int iteration){

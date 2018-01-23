@@ -22,10 +22,10 @@ void get_args(int argc, char **argv, int *h);
 //options, h is the desirable deviation, iteration is this call's iteration
 //number.
 int meanshift(double **original_points, double ***shifted_points, int h
-	, parameters *opt, int iteration);
+        , parameters *opt, int iteration);
 
 //Function norm returns the second norm of matrix of dimensions rowsXcols.
-double norm(double **matrix, int rows, int cols);
+//double norm(double **matrix, int rows, int cols);
 
 //Function alloc_2d_double allocates rows*cols bytes of continuous memory.
 double **alloc_2d_double(int rows, int cols);

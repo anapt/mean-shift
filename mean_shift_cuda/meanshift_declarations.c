@@ -24,20 +24,6 @@ void get_args(int argc, char **argv, int *h){
     LABELS_FILENAME = argv[5];
 }
 
-
-// TODO check why there's is a difference in the norm calculate in matlab
-double norm(double **matrix, int rows, int cols){
-    double sum=0, temp_mul=0;
-    for (int i=0; i<rows; i++) {
-        for (int j=0; j<cols; j++) {
-            temp_mul = matrix[i][j] * matrix[i][j];
-            sum = sum + temp_mul;
-        }
-    }
-    double norm = sqrt(sum);
-    return norm;
-}
-
 double **alloc_2d_double(int rows, int cols) {
     double *data = (double *) malloc(rows*cols*sizeof(double));
     double **array = (double **) malloc(rows*sizeof(double*));
@@ -64,8 +50,8 @@ void print_matrix(double **array, int rows, int cols){
 }
 
 void save_matrix(double **matrix, int iteration){
-    char filename[18];
-    snprintf(filename, sizeof(filename), "%s%d", "output/output_", iteration);
+    char filename[50];
+    snprintf(filename, sizeof(filename), "%s%d", "../output/output_", iteration);
     FILE *file;
     file = fopen(filename, "w");
     for (int rows=0; rows<NUMBER_OF_POINTS; ++rows){

@@ -3,9 +3,9 @@ SHELL := /bin/bash
 # ============================================
 # COMMANDS
 
-CC = nvcc
+CC = /usr/local/cuda/bin/nvcc -ccbin gcc
 RM = rm -f
-CFLAGS=-lm -O3 -Wall -I.
+CFLAGS=-lm -O3 -I.
 OBJ=meanshift.o meanshift_declarations.o
 DEPS=meanshift_declarations.h
 
