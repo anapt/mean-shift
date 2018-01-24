@@ -3,11 +3,11 @@ SHELL := /bin/bash
 # ============================================
 # COMMANDS
 
-CC = /usr/local/cuda/bin/nvcc -ccbin gcc
+CC = /usr/local/cuda/bin/nvcc
 RM = rm -f
-CFLAGS=-lm -O3 -I.
-OBJ=meanshift.o meanshift_declarations.o
-DEPS=meanshift_declarations.h
+CFLAGS= -arch=sm_21 -lm -O0 -I.
+OBJ=meanshift.o meanshift_utils.o meanshift_kernels.o
+DEPS=meanshift_utils.h meanshift_kernels.h
 
 # ==========================================
 # TARGETS
@@ -21,8 +21,8 @@ all: $(EXECUTABLES)
 # ==========================================
 # DEPENDENCIES (HEADERS)
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+%.o: %.cu $(DEPS)
+	$(CC) -x cu $(CFLAGS) -dc $< -o $@
 
 .PRECIOUS: $(EXECUTABLES) $(OBJ)
 
@@ -30,7 +30,7 @@ all: $(EXECUTABLES)
 # EXECUTABLE (MAIN)
 
 $(EXECUTABLES): $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
+	$(CC) $(CFLAGS) $(OBJ) -o $@
 
 clean:
 	$(RM) *.o *~ $(EXECUTABLES)
