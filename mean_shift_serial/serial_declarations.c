@@ -90,27 +90,26 @@ void init(double ***vectors, char **labels, parameters *params){
 int meanshift(double **original_points, double ***shifted_points, int deviation
     , parameters *opt){
     static int iteration = 0;
+    static double **mean_shift_vector, **kernel_matrix, *denominator;
 
     // allocates memory and copies original points on first iteration
     if (iteration == 0 || (*shifted_points) == NULL){
-        iteration = 0;
         (*shifted_points) = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
         duplicate(original_points, NUMBER_OF_POINTS, DIMENSIONS, shifted_points);
-    }
 
-    // allocates memory for mean shift vector
-    double **mean_shift_vector;
-    mean_shift_vector = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
-    // initializes elements of mean_shift_vector to inf
-    for (int i=0;i<NUMBER_OF_POINTS;i++){
-        for (int j=0;j<DIMENSIONS;j++){
-            mean_shift_vector[i][j] = DBL_MAX;
+        // allocates memory for mean shift vector
+        mean_shift_vector = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
+        // initializes elements of mean_shift_vector to inf
+        for (int i=0;i<NUMBER_OF_POINTS;i++){
+            for (int j=0;j<DIMENSIONS;j++){
+                mean_shift_vector[i][j] = DBL_MAX;
+            }
         }
-    }
 
-    // allocates memory for other arrays needed
-    double **kernel_matrix = alloc_2d_double(NUMBER_OF_POINTS, NUMBER_OF_POINTS);
-    double *denominator = malloc(NUMBER_OF_POINTS * sizeof(double));
+        // allocates memory for other arrays needed
+        kernel_matrix = alloc_2d_double(NUMBER_OF_POINTS, NUMBER_OF_POINTS);
+        denominator = malloc(NUMBER_OF_POINTS * sizeof(double));
+    }
 
     // finds pairwise distance matrix (inside radius)
     // [I, D] = rangesearch(x,y,h);
@@ -160,17 +159,19 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
     double current_norm = norm(mean_shift_vector, NUMBER_OF_POINTS, DIMENSIONS);
     printf("Iteration n. %d, error %f \n", iteration, current_norm);
 
-    // cleans up this iteration's allocations
-    free(mean_shift_vector[0]);
-    free(mean_shift_vector);
-    free(kernel_matrix[0]);
-    free(kernel_matrix);
-    free(denominator);
-
     /** iterates until convergence **/
     if (current_norm > opt->epsilon) {
         ++iteration;
-        return meanshift(original_points, shifted_points, deviation, opt);
+        meanshift(original_points, shifted_points, deviation, opt);
+    }
+
+    if (iteration == 0){
+        // cleans up this iteration's allocations
+        free(mean_shift_vector[0]);
+        free(mean_shift_vector);
+        free(kernel_matrix[0]);
+        free(kernel_matrix);
+        free(denominator);
     }
 
     return iteration;

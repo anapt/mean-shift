@@ -1,9 +1,9 @@
 Dataset X {
 	int NUMBER_OF_POINTS = 600;
 	int DIMENSIONS = 2;
-	char* POINTS_FILENAME = "data/X.bin";
+	char* POINTS_FILENAME = "../data/X.bin";
 	
-	A good h is 1
+	A good deviation is 1
 	For Processing script:
 		float maxX = 17.124000;
 		float minX = 3.402000;
@@ -16,9 +16,9 @@ Dataset X {
 Dataset s1 {
 	int NUMBER_OF_POINTS = 5000;
 	int DIMENSIONS = 2;
-	char* POINTS_FILENAME = "data/s1";
+	char* POINTS_FILENAME = "../data/s1";
 	
-	A good h is 30000
+	A good deviation is 30000
 	For Processing script:
 		float maxX = 961951;
 		float minX = 19835;
@@ -31,9 +31,9 @@ Dataset s1 {
 Dataset s4 {
 	int NUMBER_OF_POINTS = 5000;
 	int DIMENSIONS = 2;
-	char* POINTS_FILENAME = "data/s4";
+	char* POINTS_FILENAME = "../data/s4";
 	
-	A good h is 30000-35000
+	A good deviation is 30000-35000
 	For Processing script:
 		float maxX = 932954;
 		float minX = 89604;
