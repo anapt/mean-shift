@@ -3,6 +3,17 @@
 
 #include <stdbool.h>
 
+//GPU error check snippet taken from:
+//https://stackoverflow.com/a/14038590
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true){
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+
 extern int DEVIATION;
 extern int NUMBER_OF_POINTS;
 extern int DIMENSIONS;
@@ -29,6 +40,11 @@ int meanshift(double **original_points, double ***shifted_points, int h
 
 //Function norm returns the second norm of matrix of dimensions rowsXcols.
 double norm(double **matrix, int rows, int cols);
+
+//Function multiply allocates memory in GPU, sends the data and calls the 
+//multiply kernel function.
+void multiply(double **kernel_matrix, double **original_points
+	, double ***new_shift);
 
 //Function calculateDistance returns the distance between x and y vectors.
 double calculateDistance(double *y, double *x);

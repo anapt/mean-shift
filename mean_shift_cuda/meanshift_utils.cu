@@ -8,7 +8,7 @@
 #include "meanshift_kernels.h"
 
 #define OUTPUT_PREFIX "../output/output_"
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 8
 
 void get_args(int argc, char **argv){
     if (argc != 6) {
@@ -139,45 +139,9 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
 
     // creates new y vector
     double **new_shift = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
-//==============================================================================
 
     // builds nominator
-    /*multiply(kernel_matrix, original_points, new_shift);*/
-
-    Matrix d_kernel_matrix;
-    d_kernel_matrix.width = NUMBER_OF_POINTS;
-    d_kernel_matrix.height = NUMBER_OF_POINTS;
-    int size = NUMBER_OF_POINTS * NUMBER_OF_POINTS * sizeof(double);
-    cudaMalloc(&d_kernel_matrix.elements, size);
-    cudaMemcpy(d_kernel_matrix.elements, &(kernel_matrix[0][0]), size, cudaMemcpyHostToDevice);
-
-    Matrix d_original_points;
-    d_original_points.width = DIMENSIONS;
-    d_original_points.height = NUMBER_OF_POINTS;
-    size = NUMBER_OF_POINTS * DIMENSIONS * sizeof(double);
-    cudaMalloc(&d_original_points.elements, size);
-    cudaMemcpy(d_original_points.elements, &(original_points[0][0]), size, cudaMemcpyHostToDevice);
-
-    Matrix d_new_shift;
-    d_new_shift.width = DIMENSIONS;
-    d_new_shift.height = NUMBER_OF_POINTS;
-    size = NUMBER_OF_POINTS * DIMENSIONS * sizeof(double);
-    cudaMalloc(&d_new_shift.elements, size);
-
-    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-    dim3 dimGrid(d_original_points.width / dimBlock.x, d_kernel_matrix.height / dimBlock.y);
-
-    multiply_kernel<<<dimGrid, dimBlock>>>(d_kernel_matrix, d_original_points
-        , d_new_shift);
-
-    size = NUMBER_OF_POINTS * DIMENSIONS * sizeof(double);
-    cudaMemcpy(&(new_shift[0][0]), d_new_shift.elements, size, cudaMemcpyDeviceToHost);
-
-    cudaFree(d_kernel_matrix.elements);
-    cudaFree(d_original_points.elements);
-    cudaFree(d_new_shift.elements);
-
-//==============================================================================
+    multiply(kernel_matrix, original_points, &new_shift);
 
     // divides element-wise
     for (int i=0; i<NUMBER_OF_POINTS; i++){
@@ -228,6 +192,51 @@ double norm(double **matrix, int rows, int cols){
     }
     double norm = sqrt(sum);
     return norm;
+}
+
+void multiply(double **kernel_matrix, double **original_points, double ***new_shift){
+	// allocates memory for kernel_matrix in GPU and copies the array
+	Matrix d_kernel_matrix;
+    d_kernel_matrix.width = NUMBER_OF_POINTS;
+    d_kernel_matrix.height = NUMBER_OF_POINTS;
+    int size = NUMBER_OF_POINTS * NUMBER_OF_POINTS * sizeof(double);
+    gpuErrchk( cudaMalloc(&d_kernel_matrix.elements, size) );
+    gpuErrchk( cudaMemcpy(d_kernel_matrix.elements, &(kernel_matrix[0][0])
+    	, size, cudaMemcpyHostToDevice) );
+
+    // allocates memory for original_points in GPU and copies the array
+    Matrix d_original_points;
+    d_original_points.width = DIMENSIONS;
+    d_original_points.height = NUMBER_OF_POINTS;
+    size = NUMBER_OF_POINTS * DIMENSIONS * sizeof(double);
+    gpuErrchk( cudaMalloc(&d_original_points.elements, size) );
+    gpuErrchk( cudaMemcpy(d_original_points.elements, &(original_points[0][0])
+    	, size, cudaMemcpyHostToDevice) );
+
+	// allocates memory for new_shift in GPU
+    Matrix d_new_shift;
+    d_new_shift.width = DIMENSIONS;
+    d_new_shift.height = NUMBER_OF_POINTS;
+    size = NUMBER_OF_POINTS * DIMENSIONS * sizeof(double);
+    gpuErrchk( cudaMalloc(&d_new_shift.elements, size) );
+
+    //dim3 dimBlock(16, 16);
+    //dim3 dimGrid(d_original_points.width / dimBlock.x, d_kernel_matrix.height / dimBlock.y);
+
+    dim3 dimBlock(10, 2);
+    dim3 dimGrid(60, 1);
+
+    multiply_kernel<<<dimGrid, dimBlock>>>(d_kernel_matrix, d_original_points, d_new_shift);
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+
+    size = NUMBER_OF_POINTS * DIMENSIONS * sizeof(double);
+    gpuErrchk( cudaMemcpy(&((*new_shift)[0][0]), d_new_shift.elements
+    	, size, cudaMemcpyDeviceToHost) );
+
+    gpuErrchk( cudaFree(d_kernel_matrix.elements) );
+    gpuErrchk( cudaFree(d_original_points.elements) );
+    gpuErrchk( cudaFree(d_new_shift.elements) );
 }
 
 double calculateDistance(double *y, double *x){
