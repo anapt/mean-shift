@@ -8,28 +8,66 @@
 #include "meanshift_kernels.h"
 
 #define OUTPUT_PREFIX "../output/output_"
-#define BLOCK_SIZE 8
+int BLOCK_SIZE = 16;
 
-void get_args(int argc, char **argv){
-    if (argc != 6) {
-        printf("Usage: %s h N D Pd Pl\nwhere:\n", argv[0]);
-        printf("\th is the variance\n");
-        printf("\tN is the the number of points\n");
-        printf("\tD is the number of dimensions of each point\n");
-        printf("\tPd is the path of the dataset file\n");
-        printf("\tPl is the path of the labels file\n");
+cudaDeviceProp device_properties;
+
+void get_args(int argc, char **argv, parameters *params){
+    if (argc < 7) {
+        printf("Usage: %s h e N D Pd Pl\nwhere:\n"
+        "\th is the variance\n"
+        "\te is the min distance, between two points, that is taken into account in computations\n"
+        "\tN is the the number of points\n"
+        "\tD is the number of dimensions of each point\n"
+        "\tPd is the path of the dataset file\n"
+        "\tPl is the path of the labels file\n"
+        "\n\t--verbose | -v is an optional flag to enable execution information output"
+        "\n\t--output | -o is an optional flag to enable points output in each iteration", argv[0]);
         exit(1);
     }
 
     DEVIATION = atoi(argv[1]);
-    NUMBER_OF_POINTS = atoi(argv[2]);
-    DIMENSIONS = atoi(argv[3]);
-    POINTS_FILENAME = argv[4];
-    LABELS_FILENAME = argv[5];
+    params->epsilon = atof(argv[2]);
+    NUMBER_OF_POINTS = atoi(argv[3]);
+    DIMENSIONS = atoi(argv[4]);
+    POINTS_FILENAME = argv[5];
+    LABELS_FILENAME = argv[6];
+    params->verbose = false;
+    params->display = false;
+
+    if (argc > 7){
+        for (int index=7; index<argc; ++index){
+            if (!strcmp(argv[index], "--verbose") || !strcmp(argv[index], "-v")){
+                params->verbose = true;
+            } else if (!strcmp(argv[index], "--output") || !strcmp(argv[index], "-o")){
+                params->display = true;
+            } else {
+                printf("Couldn't parse argument %d: %s\n", index, argv[index]);
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+    /*printf("DEVIATION = %d\n"
+        "epsilon = %f\n"
+        "NUMBER_OF_POINTS = %d\n"
+        "DIMENSIONS = %d\n"
+        "POINTS_FILENAME = %s\n"
+        "LABELS_FILENAME = %s\n"
+        "verbose = %d\n"
+        "display = %d\n", DEVIATION, params->epsilon, NUMBER_OF_POINTS, DIMENSIONS, POINTS_FILENAME
+            , LABELS_FILENAME, params->verbose, params->display);*/
 }
 
-void init(double ***vectors, char **labels, parameters *params){
+void init(double ***vectors, char **labels){
     int bytes_read = 0;
+
+    set_Gpu();
+
+    if (params.verbose){
+        printf("Reading dataset and labels...\n");
+    }
+
     // initializes vectors
     FILE *points_file;
     points_file = fopen(POINTS_FILENAME, "rb");
@@ -83,10 +121,45 @@ void init(double ***vectors, char **labels, parameters *params){
     }
     fclose(labels_file);
 
-    // MEAN SHIFT OPTIONS
-    params->epsilon = 0.0001;
-    params->verbose = false;
-    params->display = false;
+    if (params.verbose){
+        printf("Done.\n\n");
+    }
+}
+
+//Based on https://stackoverflow.com/a/28113186
+//Poio psagmeno link https://www.cs.virginia.edu/~csadmin/wiki/index.php/CUDA_Support/Choosing_a_GPU
+void set_Gpu(){
+    int devices_count = 0, max_multiprocessors = 0, max_device = 0;
+
+    // gets devices count checking for errors like no devices or no drivers to check for
+    // devices available
+    gpuErrchk( cudaGetDeviceCount(&devices_count) );
+    for(int device_index = 0; device_index < devices_count; ++device_index){
+        // gets current index device's properties
+        cudaDeviceProp this_device_properties;
+        gpuErrchk( cudaGetDeviceProperties(&this_device_properties, device_index) );
+
+        // stores best available device's index
+        // only devices with compute capability >= 2.0 are able to run the code
+        if (max_multiprocessors < this_device_properties.multiProcessorCount
+            && this_device_properties.major >= 2 && this_device_properties.minor >= 0){
+            // stores devices properties for later use
+            device_properties = this_device_properties;
+            max_multiprocessors = this_device_properties.multiProcessorCount;
+            max_device = device_index;
+        }
+    }
+    // sets the device
+    gpuErrchk( cudaSetDevice(max_device) );
+    BLOCK_SIZE = device_properties.maxThreadsPerBlock;
+    if (params.verbose){
+        printf("Device chosen is \"%s\"\n"
+            "Device has %d multi processors and compute capability %d.%d\n"
+            "Setting BLOCK_SIZE to max threads per block supported (%d)\n\n"
+            , device_properties.name
+            , device_properties.multiProcessorCount, device_properties.major, device_properties.minor
+            , BLOCK_SIZE);
+    }
 }
 
 int meanshift(double **original_points, double ***shifted_points, int deviation
@@ -157,11 +230,15 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
     // updates shifted points pointer to the new array address
     shifted_points = &new_shift;
 
-    save_matrix((*shifted_points), iteration);
+    if (params.display){
+        save_matrix((*shifted_points), iteration);
+    }
 
     // calculates norm of the new mean shift vector
     double current_norm = norm(mean_shift_vector, NUMBER_OF_POINTS, DIMENSIONS);
-    printf("Iteration n. %d, error %f \n", iteration, current_norm);
+    if (params.verbose){
+        printf("Iteration n. %d, error %f \n", iteration, current_norm);
+    }
 
     /** iterates until convergence **/
     if (current_norm > opt->epsilon) {
@@ -170,7 +247,7 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
     }
 
     if (iteration == 0){
-        // cleans up this iteration's allocations
+        // cleans up allocations
         free(mean_shift_vector[0]);
         free(mean_shift_vector);
         free(kernel_matrix[0]);
@@ -195,6 +272,8 @@ double norm(double **matrix, int rows, int cols){
 }
 
 void multiply(double **kernel_matrix, double **original_points, double ***new_shift){
+    static bool firstIter = true;
+
 	// allocates memory for kernel_matrix in GPU and copies the array
 	Matrix d_kernel_matrix;
     d_kernel_matrix.width = NUMBER_OF_POINTS;
@@ -220,11 +299,16 @@ void multiply(double **kernel_matrix, double **original_points, double ***new_sh
     size = NUMBER_OF_POINTS * DIMENSIONS * sizeof(double);
     gpuErrchk( cudaMalloc(&d_new_shift.elements, size) );
 
-    //dim3 dimBlock(16, 16);
-    //dim3 dimGrid(d_original_points.width / dimBlock.x, d_kernel_matrix.height / dimBlock.y);
+    dim3 dimBlock((d_new_shift.height < sqrt(BLOCK_SIZE)) ? d_new_shift.height : sqrt(BLOCK_SIZE)
+        , (d_new_shift.width < sqrt(BLOCK_SIZE)) ? d_new_shift.width : sqrt(BLOCK_SIZE));
+    dim3 dimGrid((d_new_shift.height + dimBlock.x - 1) / dimBlock.x
+        , (d_new_shift.width + dimBlock.y - 1) / dimBlock.y);
 
-    dim3 dimBlock(10, 2);
-    dim3 dimGrid(60, 1);
+    if (firstIter && params.verbose){
+        printf("dimBlock.x = %d, dimBlock.y = %d\n", dimBlock.x, dimBlock.y);
+        printf("dimGrid.x = %d, dimGrid.y = %d\n\n", dimGrid.x, dimGrid.y);
+        firstIter = false;
+    }
 
     multiply_kernel<<<dimGrid, dimBlock>>>(d_kernel_matrix, d_original_points, d_new_shift);
     gpuErrchk( cudaPeekAtLastError() );

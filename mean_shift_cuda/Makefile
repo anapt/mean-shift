@@ -3,12 +3,18 @@ SHELL := /bin/bash
 # ============================================
 # COMMANDS
 
-CC = /usr/local/cuda/bin/nvcc
-RM = rm -f
+CC = nvcc
 HOST_COMPILER = -ccbin gcc
-CFLAGS= -arch=sm_21 -lm -O0 -I. -Wno-deprecated-gpu-targets
+CUDA_FLAGS = -arch=sm_21 -Wno-deprecated-gpu-targets 
+C_FLAGS = -lm -O3 -I.
+
+COMPILE_FLAGS = $(HOST_COMPILER) -x cu $(CUDA_FLAGS) -dc $(C_FLAGS)
+LINK_FLAGS = $(HOST_COMPILER) $(CUDA_FLAGS) $(C_FLAGS)
+
 OBJ = meanshift.o meanshift_utils.o meanshift_kernels.o
 DEPS = meanshift_utils.h meanshift_kernels.h
+
+RM = rm -f
 
 # ==========================================
 # TARGETS
@@ -23,7 +29,7 @@ all: $(EXECUTABLES)
 # DEPENDENCIES (HEADERS)
 
 %.o: %.cu $(DEPS)
-	$(CC) $(HOST_COMPILER) -x cu $(CFLAGS) -dc $< -o $@
+	$(CC) $(COMPILE_FLAGS) $< -o $@
 
 .PRECIOUS: $(EXECUTABLES) $(OBJ)
 
@@ -31,7 +37,7 @@ all: $(EXECUTABLES)
 # EXECUTABLE (MAIN)
 
 $(EXECUTABLES): $(OBJ)
-	$(CC) $(HOST_COMPILER) $(CFLAGS) $(OBJ) -o $@
+	$(CC) $(LINK_FLAGS) $(OBJ) -o $@
 
 clean:
 	$(RM) *.o *~ $(EXECUTABLES)

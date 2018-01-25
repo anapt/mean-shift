@@ -14,23 +14,29 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
-extern int DEVIATION;
-extern int NUMBER_OF_POINTS;
-extern int DIMENSIONS;
-extern char* POINTS_FILENAME;
-extern char* LABELS_FILENAME;
-
+/*        Structs       */
 typedef struct parameters {
     double epsilon;
     bool verbose;
     bool display;
 } parameters;
 
+/*        Global variables        */
+extern int DEVIATION;
+extern int NUMBER_OF_POINTS;
+extern int DIMENSIONS;
+extern char* POINTS_FILENAME;
+extern char* LABELS_FILENAME;
+extern parameters params;
+extern cudaDeviceProp device_properties;
+
 //Function get_args parses command line arguments.
-void get_args(int argc, char **argv);
+void get_args(int argc, char **argv, parameters *params);
 
 //Function init reads the dataset and label arrays from the corresponding files.
-void init(double ***vectors, char **labels, parameters *params);
+void init(double ***vectors, char **labels);
+
+void set_Gpu();
 
 //Function meanshift recursively shifts original points according to th
 //mean-shift algorithm saving the result to shiftedPoints. Struct opt has user
