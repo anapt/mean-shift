@@ -10,8 +10,8 @@
 
 cudaDeviceProp device_properties;
 
-struct timeval startwtime, endwtime;
-double seq_time;
+struct timeval start, end;
+double seq;
 
 //Based on https://stackoverflow.com/a/28113186
 //Pio psagmeno link https://www.cs.virginia.edu/~csadmin/wiki/index.php/CUDA_Support/Choosing_a_GPU
@@ -81,17 +81,17 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
         denominator = (double *)malloc(NUMBER_OF_POINTS * sizeof(double));
 
         // tic
-        gettimeofday (&startwtime, NULL);
+        gettimeofday (&start, NULL);
 
         // allocates corresponding memory in device
         init_device_memory(original_points, *shifted_points, &d_original_points, &d_shifted_points,
             &d_kernel_matrix, &d_denominator, &d_mean_shift_vector);
         // toc
-        gettimeofday (&endwtime, NULL);
-        seq_time = (double)((endwtime.tv_usec - startwtime.tv_usec)/1.0e6 + endwtime.tv_sec - startwtime.tv_sec);
+        gettimeofday (&end, NULL);
+        seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
 
         if (params.verbose){
-            printf("%s wall clock time = %f\n","Device memory allocation", seq_time);
+            printf("%s wall clock time = %f\n","Device memory allocation", seq);
         }
     }
 
