@@ -61,14 +61,15 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
 }
 
 __global__ void denominator_kernel(Matrix denominator, Matrix kernel_matrix){
-
+    // Each thread computes one element of denominator_kernel
+    // by accumulating results into cell_value
+    double cell_value = 0;
     int row = blockIdx.x * blockDim.x + threadIdx.x;
-    int col = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (row * denominator.width + col > denominator.width * denominator.height){
-        return;
+    if (row < denominator.height){
+        for (int column = 0; column < kernel_matrix.width; ++column){
+             cell_value += kernel_matrix.elements[row * kernel_matrix.width + column];
+        }
+        denominator.elements[row] = cell_value;
     }
-
-    denominator.elements[col]=0;
-    denominator.elements[row] += kernel_matrix.elements[row*denominator.width + col];
 }
