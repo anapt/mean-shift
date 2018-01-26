@@ -48,7 +48,7 @@ __global__ void calculate_kernel_matrix_kernel(Matrix shifted_points, Matrix ori
     }
 }
 
-__global__ void denominator_kernel<<<dimGrid, dimBlock>>>(Matrix denominator, Matrix kernel_matrix, int total){
+__global__ void denominator_kernel(Matrix denominator, Matrix kernel_matrix){
 
     int row = blockIdx.x * blockDim.x + threadIdx.x;
     int col = blockIdx.y * blockDim.y + threadIdx.y;
@@ -61,15 +61,4 @@ __global__ void denominator_kernel<<<dimGrid, dimBlock>>>(Matrix denominator, Ma
     denominator[col]=0;
     denominator[row] += kernel_matrix[row*denominator.width + col];
 
-}
-
-// serial
-
-// calculate denominator
-for (int i=0; i<NUMBER_OF_POINTS; i++){
-    double sum = 0;
-    for (int j=0; j<NUMBER_OF_POINTS; j++){
-        sum = sum + kernel_matrix[i][j];
-    }
-    denominator[i] = sum;
 }
