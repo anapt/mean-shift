@@ -92,6 +92,8 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
 
 
         printf("%s wall clock time = %f\n","Device memory allocation", seq);
+        // to create output data file
+//        printf("%f ", seq);
     }
 
     // finds pairwise distance matrix (inside radius)
@@ -103,8 +105,19 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
     calculate_denominator(d_kernel_matrix, d_denominator, &denominator);
 
     size = NUMBER_OF_POINTS * sizeof(double);
+    // tic
+    gettimeofday (&start, NULL);
     gpuErrchk( cudaMemcpy(d_denominator.elements, &(denominator[0])
         , size, cudaMemcpyHostToDevice) );
+    // toc
+    gettimeofday (&end, NULL);
+    seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
+
+
+    printf("%s wall clock time = %f\n","Device memory allocation", seq);
+    // to create output data file
+//        printf("%f ", seq);
+
 
     // creates new y vector
     // allocates memory in every recursion
@@ -229,8 +242,20 @@ void calculate_kernel_matrix(Matrix d_shifted_points, Matrix d_original_points,
     }
 
     size = NUMBER_OF_POINTS * NUMBER_OF_POINTS * sizeof(double);
+
+    // tic
+    gettimeofday (&start, NULL);
     gpuErrchk( cudaMemcpy(&((*kernel_matrix)[0][0]), d_kernel_matrix.elements
         , size, cudaMemcpyDeviceToHost) );
+
+    // toc
+    gettimeofday (&end, NULL);
+    seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
+
+
+    printf("%s wall clock time = %f\n","Copying from device to host", seq);
+    // to create output data file
+//        printf("%f ", seq);
 }
 
 void calculate_denominator(Matrix d_kernel_matrix, Matrix d_denominator, double **denominator){
@@ -265,8 +290,20 @@ void calculate_denominator(Matrix d_kernel_matrix, Matrix d_denominator, double 
     }
 
     size = NUMBER_OF_POINTS * sizeof(double);
+    // tic
+    gettimeofday (&start, NULL);
+
     gpuErrchk( cudaMemcpy(&((*denominator)[0]), d_denominator.elements
     	, size, cudaMemcpyDeviceToHost) );
+
+    // toc
+    gettimeofday (&end, NULL);
+    seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
+
+
+    printf("%s wall clock time = %f\n","Copying from device to host", seq);
+    // to create output data file
+//        printf("%f ", seq);
 }
 
 void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shifted_points,
@@ -305,10 +342,24 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
     }
 
     size = NUMBER_OF_POINTS * DIMENSIONS * sizeof(double);
+
+    // tic
+    gettimeofday (&start, NULL);
+
     gpuErrchk( cudaMemcpy(&((*new_shift)[0][0]), d_new_shift.elements
         , size, cudaMemcpyDeviceToHost) );
     gpuErrchk( cudaMemcpy(&((*mean_shift_vector)[0][0]), d_mean_shift_vector.elements
         , size, cudaMemcpyDeviceToHost) );
+
+    // toc
+    gettimeofday (&end, NULL);
+    seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
+
+
+    printf("%s wall clock time = %f\n","Copying from device to host", seq);
+    // to create output data file
+//        printf("%f ", seq);
+
 }
 
 void free_device_memory(Matrix d_original_points, Matrix d_kernel_matrix, Matrix d_denominator,
