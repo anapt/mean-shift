@@ -9,6 +9,9 @@
 
 cudaDeviceProp device_properties;
 
+struct timeval startwtime, endwtime;
+double seq_time;
+
 //Based on https://stackoverflow.com/a/28113186
 //Pio psagmeno link https://www.cs.virginia.edu/~csadmin/wiki/index.php/CUDA_Support/Choosing_a_GPU
 void set_GPU(){
