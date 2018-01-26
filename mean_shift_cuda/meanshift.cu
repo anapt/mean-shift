@@ -21,7 +21,7 @@ int main(int argc, char **argv){
     char *labels;
 
     params.epsilon = 0.0001;
-    params.verbose = true;
+    params.verbose = false;
     params.display = true;
 
     //get_args(argc, argv, &params); //commented out while in development
@@ -38,10 +38,10 @@ int main(int argc, char **argv){
     gettimeofday (&endwtime, NULL);
     seq_time = (double)((endwtime.tv_usec - startwtime.tv_usec)/1.0e6 + endwtime.tv_sec - startwtime.tv_sec);
     
-    if (params.verbose){
-        printf("\nTotal number of iterations = %d\n", iterations);
-        printf("%s wall clock time = %f\n","Mean Shift", seq_time);
-    }
+
+    printf("\nTotal number of iterations = %d\n", iterations);
+    printf("%s wall clock time = %f\n","Mean Shift", seq_time);
+
 
     //TODO write output points to file -> plot later
     //save_matrix(shifted_points, iterations);

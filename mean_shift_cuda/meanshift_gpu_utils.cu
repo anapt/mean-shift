@@ -90,9 +90,8 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
         gettimeofday (&end, NULL);
         seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
 
-        if (params.verbose){
-            printf("%s wall clock time = %f\n","Device memory allocation", seq);
-        }
+
+        printf("%s wall clock time = %f\n","Device memory allocation", seq);
     }
 
     // finds pairwise distance matrix (inside radius)
