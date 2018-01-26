@@ -101,7 +101,7 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
         &kernel_matrix);
 
     // calculates denominator
-    calculate_denominator(d_kernel_matrix, d_denominator, &denominator);
+    calculate_denominator(d_kernel_matrix, d_denominator);
 
 
 

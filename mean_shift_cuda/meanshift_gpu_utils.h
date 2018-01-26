@@ -48,6 +48,6 @@ void free_device_memory(Matrix d_original_points, Matrix d_kernel_matrix, Matrix
 
 //Function calculate_denominator allocates memory in GPU, sends the data and calls the
 //denominator kernel function.
-void calculate_denominator(Matrix d_kernel_matrix, Matrix d_denominator, double **denominator);
+void calculate_denominator(Matrix d_kernel_matrix, Matrix d_denominator);
 
 #endif //SERIAL_GPU_UTILS_H
