@@ -3,6 +3,7 @@
 #include <sys/time.h>
 
 #include "meanshift_utils.h"
+#include "meanshift_gpu_utils.h"
 
 int DEVIATION = 1;
 int NUMBER_OF_POINTS = 600;

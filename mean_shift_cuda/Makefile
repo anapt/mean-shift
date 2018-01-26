@@ -11,7 +11,7 @@ C_FLAGS = -lm -O3 -I.
 COMPILE_FLAGS = $(HOST_COMPILER) -x cu $(CUDA_FLAGS) -dc $(C_FLAGS)
 LINK_FLAGS = $(HOST_COMPILER) $(CUDA_FLAGS) $(C_FLAGS)
 
-OBJ = meanshift.o meanshift_utils.o meanshift_kernels.o
+OBJ = meanshift.o meanshift_utils.o meanshift_gpu_utils.o meanshift_kernels.o
 DEPS = meanshift_utils.h meanshift_kernels.h
 
 RM = rm -f
