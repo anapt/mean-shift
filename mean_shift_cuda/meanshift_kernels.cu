@@ -58,7 +58,7 @@ __global__ void denominator_kernel(Matrix denominator, Matrix kernel_matrix){
         return;
     }
 
-    denominator[col]=0;
-    denominator[row] += kernel_matrix[row*denominator.width + col];
+    denominator.elements[col]=0;
+    denominator.elements[row] += kernel_matrix.elements[row*denominator.width + col];
 
 }
