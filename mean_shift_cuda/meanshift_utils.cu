@@ -183,18 +183,21 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
         kernel_matrix = alloc_2d_double(NUMBER_OF_POINTS, NUMBER_OF_POINTS);
         denominator = (double *)malloc(NUMBER_OF_POINTS * sizeof(double));
     }
+    // TODO move arrays to device and create global kernel for the iteration
 
     // finds pairwise distance matrix (inside radius)
     // [I, D] = rangesearch(x,y,h);
     calculate_kernel_matrix((*shifted_points), original_points, deviation, &kernel_matrix);
-    // calculate denominator
-    for (int i=0; i<NUMBER_OF_POINTS; i++){
-        double sum = 0;
-        for (int j=0; j<NUMBER_OF_POINTS; j++){
-            sum = sum + kernel_matrix[i][j];
-        }
-        denominator[i] = sum;
-    }
+
+//    // calculate denominator
+//    for (int i=0; i<NUMBER_OF_POINTS; i++){
+//        double sum = 0;
+//        for (int j=0; j<NUMBER_OF_POINTS; j++){
+//            sum = sum + kernel_matrix[i][j];
+//        }
+//        denominator[i] = sum;
+//    }
+    calculate_denominator(kernel_matrix);
 
     // creates new y vector
     double **new_shift = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
@@ -244,7 +247,7 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
     return iteration;
 }
 
-// TODO check why there's is a difference in the norm calculate in matlab
+
 double norm(double **matrix, int rows, int cols){
     double sum=0, temp_mul=0;
     for (int i=0; i<rows; i++) {
@@ -431,4 +434,50 @@ void save_matrix(double **matrix, int iteration){
         }
         fprintf(file, "\n");
     }
+}
+
+void calculate_denominator(double **kernel_matrix){
+    static bool first_iter = true;
+
+    // allocates memory for denominator_matrix in GPU
+    Matrix d_denominator_matrix;
+    d_denominator_matrix.width = NUMBER_OF_POINTS;
+    d_denominator_matrix = 1;
+    int size = NUMBER_OF_POINTS * sizeof(double);
+    gpuErrchk( cudaMalloc(&d_denominator_matrix.elements, size) );
+
+    // allocates memory for kernel_matrix in GPU and copies the array
+    Matrix d_kernel_matrix;
+    d_kernel_matrix.width = NUMBER_OF_POINTS;
+    d_kernel_matrix.height = NUMBER_OF_POINTS;
+    int size = NUMBER_OF_POINTS * NUMBER_OF_POINTS * sizeof(double);
+    gpuErrchk( cudaMalloc(&d_kernel_matrix.elements, size) );
+    gpuErrchk( cudaMemcpy(d_kernel_matrix.elements, &(kernel_matrix[0][0])
+            , size, cudaMemcpyHostToDevice) );
+
+    // get max sizes supported from the device
+    int max_block_size = device_properties.maxThreadsPerBlock;
+    dim3 dimBlock((d_new_shift.height < sqrt(max_block_size)) ? d_new_shift.height : sqrt(max_block_size)
+            , (d_new_shift.width < sqrt(max_block_size)) ? d_new_shift.width : sqrt(max_block_size));
+    dim3 dimGrid((d_new_shift.height + dimBlock.x - 1) / dimBlock.x
+            , (d_new_shift.width + dimBlock.y - 1) / dimBlock.y);
+
+    if (first_iter && params.verbose){
+        printf("calculate_denominator called with:\n");
+        printf("dimBlock.x = %d, dimBlock.y = %d\n", dimBlock.x, dimBlock.y);
+        printf("dimGrid.x = %d, dimGrid.y = %d\n\n", dimGrid.x, dimGrid.y);
+        first_iter = false;
+    }
+
+    denominator_kernel<<<dimGrid, dimBlock>>>(d_denominator_matrix, d_kernel_matrix, T);
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+
+    size = NUMBER_OF_POINTS sizeof(double);
+    gpuErrchk( cudaMemcpy(&((*denominator)[0]), d_denominator_matrix.elements
+            ,size, cudaMemcpyDeviceToHost) );
+
+    gpuErrchk( cudaFree(d_kernel_matrix.elements) );
+    gpuErrchk( cudaFree(d_original_points.elements) );
+    gpuErrchk( cudaFree(d_new_shift.elements) );
 }
