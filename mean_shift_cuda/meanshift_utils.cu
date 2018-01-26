@@ -436,13 +436,13 @@ void save_matrix(double **matrix, int iteration){
     }
 }
 
-void calculate_denominator(double **kernel_matrix){
+double * calculate_denominator(double **kernel_matrix){
     static bool first_iter = true;
 
     // allocates memory for denominator_matrix in GPU
     Matrix d_denominator_matrix;
     d_denominator_matrix.width = NUMBER_OF_POINTS;
-    d_denominator_matrix = 1;
+    d_denominator_matrix.height = 1;
     int size = NUMBER_OF_POINTS * sizeof(double);
     gpuErrchk( cudaMalloc(&d_denominator_matrix.elements, size) );
 
@@ -450,17 +450,17 @@ void calculate_denominator(double **kernel_matrix){
     Matrix d_kernel_matrix;
     d_kernel_matrix.width = NUMBER_OF_POINTS;
     d_kernel_matrix.height = NUMBER_OF_POINTS;
-    int size = NUMBER_OF_POINTS * NUMBER_OF_POINTS * sizeof(double);
+    size = NUMBER_OF_POINTS * NUMBER_OF_POINTS * sizeof(double);
     gpuErrchk( cudaMalloc(&d_kernel_matrix.elements, size) );
     gpuErrchk( cudaMemcpy(d_kernel_matrix.elements, &(kernel_matrix[0][0])
             , size, cudaMemcpyHostToDevice) );
 
     // get max sizes supported from the device
     int max_block_size = device_properties.maxThreadsPerBlock;
-    dim3 dimBlock((d_new_shift.height < sqrt(max_block_size)) ? d_new_shift.height : sqrt(max_block_size)
-            , (d_new_shift.width < sqrt(max_block_size)) ? d_new_shift.width : sqrt(max_block_size));
-    dim3 dimGrid((d_new_shift.height + dimBlock.x - 1) / dimBlock.x
-            , (d_new_shift.width + dimBlock.y - 1) / dimBlock.y);
+    dim3 dimBlock((d_denominator_matrix.height < sqrt(max_block_size)) ? d_denominator_matrix.height : sqrt(max_block_size)
+            , (d_denominator_matrix.width < sqrt(max_block_size)) ? d_denominator_matrix.width : sqrt(max_block_size));
+    dim3 dimGrid((d_denominator_matrix.height + dimBlock.x - 1) / dimBlock.x
+            , (d_denominator_matrix.width + dimBlock.y - 1) / dimBlock.y);
 
     if (first_iter && params.verbose){
         printf("calculate_denominator called with:\n");
@@ -473,11 +473,14 @@ void calculate_denominator(double **kernel_matrix){
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
 
-    size = NUMBER_OF_POINTS sizeof(double);
+
+    size = NUMBER_OF_POINTS * sizeof(double);
+    double * denominator = malloc(size);
     gpuErrchk( cudaMemcpy(&((*denominator)[0]), d_denominator_matrix.elements
             ,size, cudaMemcpyDeviceToHost) );
 
     gpuErrchk( cudaFree(d_kernel_matrix.elements) );
-    gpuErrchk( cudaFree(d_original_points.elements) );
-    gpuErrchk( cudaFree(d_new_shift.elements) );
+    gpuErrchk( cudaFree(d_denominator_matrix.elements) );
+
+    return denominator;
 }
