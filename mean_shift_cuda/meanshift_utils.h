@@ -73,6 +73,6 @@ void save_matrix(double **matrix
 
 //Function calculate_denominator allocates memory in GPU, sends the data and calls the
 //denominator kernel function.
-void calculate_denominator(double **kernel_matrix);
+double * calculate_denominator(double **kernel_matrix);
 
 #endif //SERIAL_UTILS_H

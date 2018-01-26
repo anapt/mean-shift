@@ -197,7 +197,7 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
 //        }
 //        denominator[i] = sum;
 //    }
-    calculate_denominator(kernel_matrix);
+    denominator = calculate_denominator(kernel_matrix);
 
     // creates new y vector
     double **new_shift = alloc_2d_double(NUMBER_OF_POINTS, DIMENSIONS);
@@ -469,7 +469,7 @@ double * calculate_denominator(double **kernel_matrix){
         first_iter = false;
     }
 
-    denominator_kernel<<<dimGrid, dimBlock>>>(d_denominator_matrix, d_kernel_matrix, T);
+    denominator_kernel<<<dimGrid, dimBlock>>>(d_denominator_matrix, d_kernel_matrix);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
 

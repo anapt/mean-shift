@@ -13,6 +13,6 @@ __global__ void multiply_kernel(Matrix matrix1, Matrix matrix2, Matrix output);
 __global__ void calculate_kernel_matrix_kernel(Matrix shifted_points, Matrix original_points
     , double deviation, Matrix kernel_matrix);
 
-__global__ void denominator_kernel(Matrix denominator, Matrix kernel_matrix, int T);
+__global__ void denominator_kernel(Matrix denominator, Matrix kernel_matrix);
 
 #endif //SERIAL_KERNELS_H

@@ -54,8 +54,9 @@ __global__ void denominator_kernel<<<dimGrid, dimBlock>>>(Matrix denominator, Ma
     int col = blockIdx.y * blockDim.y + threadIdx.y;
 
 
-    if (row>=total || col>=total)
+    if (row * denominator.width + col > denominator.width * denominator.height){
         return;
+    }
 
     denominator[col]=0;
     denominator[row] += kernel_matrix[row*denominator.width + col];
