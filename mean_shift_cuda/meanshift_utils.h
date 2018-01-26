@@ -2,6 +2,7 @@
 #define SERIAL_UTILS_H
 
 #include <stdbool.h>
+#include "meanshift_kernels.h"
 
 //GPU error check snippet taken from:
 //https://stackoverflow.com/a/14038590
@@ -35,7 +36,7 @@ void get_args(int argc, char **argv, parameters *params);
 //Function init reads the dataset and label arrays from the corresponding files.
 void init(double ***vectors, char **labels);
 
-void set_Gpu();
+void set_GPU();
 
 //Function meanshift recursively shifts original points according to th
 //mean-shift algorithm saving the result to shiftedPoints. Struct opt has user
@@ -43,16 +44,24 @@ void set_Gpu();
 int meanshift(double **original_points, double ***shifted_points, int h
     , parameters *opt);
 
+void init_device_memory(double **original_points, double **shifted_points,
+    Matrix *d_original_points, Matrix *d_shifted_points,
+    Matrix *d_kernel_matrix, Matrix *d_denominator, Matrix *d_new_shift);
+
 //Function norm returns the second norm of matrix of dimensions rowsXcols.
 double norm(double **matrix, int rows, int cols);
 
-void calculate_kernel_matrix(double **shifted_points, double **original_points, double deviation
-    , double ***kernel_matrix);
+void calculate_kernel_matrix(Matrix d_shifted_points, Matrix d_original_points,
+    Matrix d_kernel_matrix, double deviation, double ***kernel_matrix);
 
 //Function multiply allocates memory in GPU, sends the data and calls the 
 //multiply kernel function.
-void multiply(double **kernel_matrix, double **original_points
-    , double ***new_shift);
+void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shifted_points,
+    Matrix d_new_shift, Matrix d_denominator, Matrix d_mean_shift_vector, double **kernel_matrix,
+    double **original_points, double ***new_shift, double ***mean_shift_vector);
+
+void free_device_memory(Matrix d_original_points, Matrix d_kernel_matrix, Matrix d_denominator,
+    Matrix d_new_shift);
 
 //Function calculateDistance returns the distance between x and y vectors.
 double calculateDistance(double *y, double *x);
