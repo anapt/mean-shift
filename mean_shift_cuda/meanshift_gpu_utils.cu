@@ -91,9 +91,9 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
         seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
 
 
-        printf("%s wall clock time = %f\n","Device memory allocation", seq);
+//        printf("%s wall clock time = %f\n","Device memory allocation", seq);
         // to create output data file
-//        printf("%f ", seq);
+        printf("%f ", seq);
     }
 
     // finds pairwise distance matrix (inside radius)
@@ -114,9 +114,9 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
     seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
 
 
-    printf("%s wall clock time = %f\n","Device memory allocation", seq);
+//    printf("%s wall clock time = %f\n","Device memory allocation", seq);
     // to create output data file
-//        printf("%f ", seq);
+    printf("%f ", seq);
 
 
     // creates new y vector
@@ -253,9 +253,9 @@ void calculate_kernel_matrix(Matrix d_shifted_points, Matrix d_original_points,
     seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
 
 
-    printf("%s wall clock time = %f\n","Copying from device to host", seq);
+//    printf("%s wall clock time = %f\n","Copying from device to host", seq);
     // to create output data file
-//        printf("%f ", seq);
+        printf("%f ", seq);
 }
 
 void calculate_denominator(Matrix d_kernel_matrix, Matrix d_denominator, double **denominator){
@@ -301,9 +301,9 @@ void calculate_denominator(Matrix d_kernel_matrix, Matrix d_denominator, double 
     seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
 
 
-    printf("%s wall clock time = %f\n","Copying from device to host", seq);
+//    printf("%s wall clock time = %f\n","Copying from device to host", seq);
     // to create output data file
-//        printf("%f ", seq);
+        printf("%f ", seq);
 }
 
 void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shifted_points,
@@ -356,9 +356,9 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
     seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
 
 
-    printf("%s wall clock time = %f\n","Copying from device to host", seq);
+//    printf("%s wall clock time = %f\n","Copying from device to host", seq);
     // to create output data file
-//        printf("%f ", seq);
+        printf("%f ", seq);
 
 }
 

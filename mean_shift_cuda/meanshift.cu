@@ -39,9 +39,9 @@ int main(int argc, char **argv){
     seq_time = (double)((endwtime.tv_usec - startwtime.tv_usec)/1.0e6 + endwtime.tv_sec - startwtime.tv_sec);
     
 
-    printf("\nTotal number of iterations = %d\n", iterations);
-    printf("%s wall clock time = %f\n","Mean Shift", seq_time);
-
+//    printf("\nTotal number of iterations = %d\n", iterations);
+//    printf("%s wall clock time = %f\n","Mean Shift", seq_time);
+    printf("%f \n", seq_time);
 
     //TODO write output points to file -> plot later
     //save_matrix(shifted_points, iterations);
