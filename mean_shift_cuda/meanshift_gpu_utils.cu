@@ -76,9 +76,19 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
         kernel_matrix = alloc_double(NUMBER_OF_POINTS, NUMBER_OF_POINTS);
         denominator = (double *)malloc(NUMBER_OF_POINTS * sizeof(double));
 
+        // tic
+        gettimeofday (&startwtime, NULL);
+
         // allocates corresponding memory in device
         init_device_memory(original_points, *shifted_points, &d_original_points, &d_shifted_points,
             &d_kernel_matrix, &d_denominator, &d_mean_shift_vector);
+        // toc
+        gettimeofday (&endwtime, NULL);
+        seq_time = (double)((endwtime.tv_usec - startwtime.tv_usec)/1.0e6 + endwtime.tv_sec - startwtime.tv_sec);
+
+        if (params.verbose){
+            printf("%s wall clock time = %f\n","Device memory allocation", seq_time);
+        }
     }
 
     // finds pairwise distance matrix (inside radius)
