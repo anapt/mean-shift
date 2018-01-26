@@ -80,12 +80,12 @@ __global__ void denominator_kernel(Matrix denominator, Matrix kernel_matrix){
     denominator.elements[row] = cell_value;
 }
 
-__global__ double calcNorm(Matrix mean_shift_vector){
-    float sum =0;
-    for (int k=0; k< patchSize; k++){
-        for (int l=0; l<patchSize; l++){
-            sum+=(fNi(k,l)-fNj(k,l))*(fNi(k,l)-fNj(k,l))*H(k,l);
-        }
-    }
-    return sum;
-}
+//__global__ double calcNorm(Matrix mean_shift_vector){
+//    float sum =0;
+//    for (int k=0; k< patchSize; k++){
+//        for (int l=0; l<patchSize; l++){
+//            sum+=(fNi(k,l)-fNj(k,l))*(fNi(k,l)-fNj(k,l))*H(k,l);
+//        }
+//    }
+//    return sum;
+//}
