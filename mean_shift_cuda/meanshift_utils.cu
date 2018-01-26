@@ -475,12 +475,12 @@ double * calculate_denominator(double **kernel_matrix){
 
 
     size = NUMBER_OF_POINTS * sizeof(double);
-    double * denominator = malloc(size);
+    double ** denominator = (double**)malloc(size);
     gpuErrchk( cudaMemcpy(&((*denominator)[0]), d_denominator_matrix.elements
             ,size, cudaMemcpyDeviceToHost) );
 
     gpuErrchk( cudaFree(d_kernel_matrix.elements) );
     gpuErrchk( cudaFree(d_denominator_matrix.elements) );
 
-    return denominator;
+    return (*denominator);
 }
