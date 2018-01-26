@@ -3,6 +3,7 @@
 #include <math.h>
 #include <float.h>
 #include <string.h>
+#include <time.h>
 
 #include "meanshift_utils.h"
 #include "meanshift_gpu_utils.h"
