@@ -16,7 +16,8 @@ __global__ void calculate_kernel_matrix_kernel(Matrix shifted_points, Matrix ori
     // calculate distance
     double sum = 0, dif;
     for (int i=0; i<dimensions; i++){
-        dif = shifted_points.elements[row * dimensions + i] - original_points.elements[col * dimensions + i];
+        dif = shifted_points.elements[row * dimensions + i]
+            - original_points.elements[col * dimensions + i];
         sum += dif * dif;
     }
     double distance = sqrt(sum);
@@ -34,8 +35,25 @@ __global__ void calculate_kernel_matrix_kernel(Matrix shifted_points, Matrix ori
     }
 }
 
-__global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix, Matrix shifted_points,
-    Matrix new_shift, Matrix denominator, Matrix mean_shift_vector){
+__global__ void denominator_kernel(Matrix denominator, Matrix kernel_matrix){
+    // each thread computes one element of denominator_kernel
+    // by accumulating results into cell_value
+    double cell_value = 0;
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // performs calculations only if thread's indexes are within matrix bounds
+    if (row >= denominator.height){
+        return;
+    }
+
+    for (int column = 0; column < kernel_matrix.width; ++column){
+         cell_value += kernel_matrix.elements[row * kernel_matrix.width + column];
+    }
+    denominator.elements[row] = cell_value;
+}
+
+__global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix,
+    Matrix shifted_points, Matrix new_shift, Matrix denominator, Matrix mean_shift_vector){
     // each thread computes one element of new_shift
     // by accumulating results into cell_value
     double cell_value = 0;
@@ -61,21 +79,4 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
     mean_shift_vector.elements[row * new_shift.width + col] =
         new_shift.elements[row * new_shift.width + col] -
         shifted_points.elements[row * new_shift.width + col];
-}
-
-__global__ void denominator_kernel(Matrix denominator, Matrix kernel_matrix){
-    // each thread computes one element of denominator_kernel
-    // by accumulating results into cell_value
-    double cell_value = 0;
-    int row = blockIdx.x * blockDim.x + threadIdx.x;
-
-    // performs calculations only if thread's indexes are within matrix bounds
-    if (row >= denominator.height){
-        return;
-    }
-
-    for (int column = 0; column < kernel_matrix.width; ++column){
-         cell_value += kernel_matrix.elements[row * kernel_matrix.width + column];
-    }
-    denominator.elements[row] = cell_value;
 }

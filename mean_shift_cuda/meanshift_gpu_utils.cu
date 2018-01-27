@@ -15,8 +15,8 @@ cudaDeviceProp device_properties;
 struct timeval start, end;
 double seq;
 
-//Based on https://stackoverflow.com/a/28113186
-//Pio psagmeno link https://www.cs.virginia.edu/~csadmin/wiki/index.php/CUDA_Support/Choosing_a_GPU
+//Based on:
+//          https://www.cs.virginia.edu/~csadmin/wiki/index.php/CUDA_Support/Choosing_a_GPU
 void set_GPU(){
     int devices_count = 0, max_multiprocessors = 0, max_device = 0;
 
@@ -56,7 +56,7 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
     int size = 0;
     static int iteration = 0;
     static double **kernel_matrix, **mean_shift_vector;
-    double **new_shift;
+    double **new_shift, current_norm = 0;
 
     // device variables
     static Matrix d_original_points, d_shifted_points, d_kernel_matrix, d_denominator,
@@ -78,7 +78,7 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
             }
         }
 
-        // allocates memory for other arrays needed
+        // allocates memory for kernel_matrix
         kernel_matrix = alloc_double(NUMBER_OF_POINTS, NUMBER_OF_POINTS);
 
         // tic
@@ -90,7 +90,6 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
         // toc
         gettimeofday (&end, NULL);
         seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
-
 
 //        printf("%s wall clock time = %f\n","Device memory allocation", seq);
         // to create output data file
@@ -104,8 +103,6 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
 
     // calculates denominator
     calculate_denominator(d_kernel_matrix, d_denominator);
-
-
 
     // creates new y vector
     // allocates memory in every recursion
@@ -130,11 +127,20 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
     }
 
     // calculates norm of the new mean shift vector in GPU using "cuBlas" library function
-    double current_norm = 0;
     cublasHandle_t handle;
-    cublasCreate(&handle);
-    cublasDnrm2(handle, NUMBER_OF_POINTS * DIMENSIONS, d_mean_shift_vector.elements, 1, &current_norm);
-    cublasDestroy(handle);
+    cublasStatus_t cublas_status = cublasCreate(&handle);
+    if (cublas_status != CUBLAS_STATUS_SUCCESS){
+        exit(cublas_status);
+    }
+    cublas_status = cublasDnrm2(handle, NUMBER_OF_POINTS * DIMENSIONS, d_mean_shift_vector.elements,
+        1, &current_norm);
+    if (cublas_status != CUBLAS_STATUS_SUCCESS){
+        exit(cublas_status);
+    }
+    cublas_status = cublasDestroy(handle);
+    if (cublas_status != CUBLAS_STATUS_SUCCESS){
+        exit(cublas_status);
+    }
 
     if (params.verbose){
         printf("Iteration n. %d, error\t%f \n", iteration, current_norm);
@@ -244,7 +250,6 @@ void calculate_kernel_matrix(Matrix d_shifted_points, Matrix d_original_points,
     gettimeofday (&end, NULL);
     seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
 
-
 //    printf("%s wall clock time = %f\n","Copying from device to host", seq);
     // to create output data file
         printf("%f ", seq);
@@ -330,7 +335,6 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
     // toc
     gettimeofday (&end, NULL);
     seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
-
 
 //    printf("%s wall clock time = %f\n","Copying from device to host", seq);
     // to create output data file

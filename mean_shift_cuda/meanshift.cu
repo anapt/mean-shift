@@ -8,8 +8,8 @@
 int DEVIATION = 1;
 int NUMBER_OF_POINTS = 600;
 int DIMENSIONS = 2;
-char* POINTS_FILENAME = "../data/X.bin";
-char* LABELS_FILENAME = "../data/L.bin";
+const char *POINTS_FILENAME = "../data/X.bin";
+const char *LABELS_FILENAME = "../data/L.bin";
 parameters params;
 
 struct timeval startwtime, endwtime;
