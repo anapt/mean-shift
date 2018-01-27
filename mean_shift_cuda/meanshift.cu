@@ -16,7 +16,7 @@ struct timeval startwtime, endwtime;
 double seq_time;
 
 int main(int argc, char **argv){
-    int iterations;
+    int iterations = 0;
     double **vectors, **shifted_points;
     char *labels;
 

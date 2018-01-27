@@ -44,3 +44,16 @@ Dataset s4 {
 	110 iterations with epsilon = 0.01 and h = 30000
 	108 iterations with epsilon = 1 and h = 31000
 }
+
+Dataset 32 {
+	int NUMBER_OF_POINTS = 1024;
+	int DIMENSIONS = 32;
+	char* POINTS_FILENAME = "../data/32";
+	
+	A good deviation is 30000-35000
+	For Processing script:
+		no use
+
+	23 iterations with epsilon = 0.0001 and h = 20
+	44 iterations with epsilon = 0.01 and h = 10
+}

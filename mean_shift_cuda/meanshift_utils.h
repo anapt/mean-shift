@@ -16,9 +16,6 @@ void get_args(int argc, char **argv, parameters *params);
 //Function init reads the dataset and label arrays from the corresponding files.
 void init(double ***vectors, char **labels);
 
-//Function norm returns the second norm of matrix of dimensions rowsXcols.
-double norm(double **matrix, int rows, int cols);
-
 //Function alloc_double allocates rows*cols bytes of continuous memory.
 double **alloc_double(int rows, int cols);
 

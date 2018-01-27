@@ -5,6 +5,8 @@
 #include <string.h>
 #include <sys/time.h>
 
+#include <cublas_v2.h>
+
 #include "meanshift_utils.h"
 #include "meanshift_gpu_utils.h"
 
@@ -127,13 +129,18 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
         save_matrix((*shifted_points), iteration);
     }
 
-    // calculates norm of the new mean shift vector
-    double current_norm = norm(mean_shift_vector, NUMBER_OF_POINTS, DIMENSIONS);
+    // calculates norm of the new mean shift vector in GPU using "cuBlas" library function
+    double current_norm = 0;
+    cublasHandle_t handle;
+    cublasCreate(&handle);
+    cublasDnrm2(handle, NUMBER_OF_POINTS * DIMENSIONS, d_mean_shift_vector.elements, 1, &current_norm);
+    cublasDestroy(handle);
+
     if (params.verbose){
         printf("Iteration n. %d, error\t%f \n", iteration, current_norm);
     }
 
-    /** iterates until convergence **/
+    // iterates until convergence
     if (current_norm > opt->epsilon) {
         ++iteration;
         meanshift(original_points, shifted_points, deviation, opt);
@@ -244,7 +251,6 @@ void calculate_kernel_matrix(Matrix d_shifted_points, Matrix d_original_points,
 }
 
 void calculate_denominator(Matrix d_kernel_matrix, Matrix d_denominator){
-    int size;
     static bool first_iter = true;
     // gets max block size supported from the device
     static int requested_block_size = device_properties.maxThreadsPerBlock;

@@ -5,7 +5,7 @@ SHELL := /bin/bash
 
 CC = nvcc
 HOST_COMPILER = -ccbin gcc
-CUDA_FLAGS = -arch=sm_21 -Wno-deprecated-gpu-targets 
+CUDA_FLAGS = -arch=sm_21 -Wno-deprecated-gpu-targets -lcublas
 C_FLAGS = -lm -O3 -I.
 
 COMPILE_FLAGS = $(HOST_COMPILER) -x cu $(CUDA_FLAGS) -dc $(C_FLAGS)
