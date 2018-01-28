@@ -30,7 +30,7 @@ int main(int argc, char **argv){
 
     // tic
     gettimeofday (&startwtime, NULL);
-    iterations = meanshift(vectors, &shifted_points, DEVIATION, &params);
+    iterations = meanshift(vectors, &shifted_points, DEVIATION);
 
     // toc
     gettimeofday (&endwtime, NULL);

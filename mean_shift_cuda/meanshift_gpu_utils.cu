@@ -12,7 +12,7 @@
 
 cudaDeviceProp device_properties;
 
-struct timeval start, end;
+struct timeval start_w_time, end_w_time;
 double seq;
 
 //Based on:
@@ -50,13 +50,13 @@ void set_GPU(){
     }
 }
 
-int meanshift(double **original_points, double ***shifted_points, int deviation
-    , parameters *opt){
+int meanshift(double **original_points, double ***shifted_points, int deviation){
     // host variables
     int size = 0;
     static int iteration = 0;
-    static double **kernel_matrix, **mean_shift_vector;
-    double **new_shift, current_norm = 0;
+    static double **kernel_matrix, **mean_shift_vector, w_memcpy_time;
+    double **new_shift, current_norm = 0, tmp_w_memcpy_time;
+    bool is_first_iteration = false;
 
     // device variables
     static Matrix d_original_points, d_shifted_points, d_kernel_matrix, d_denominator,
@@ -65,6 +65,7 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
 
     // allocates memory and copies original points on first iteration
     if (iteration == 0 || (*shifted_points) == NULL){
+        is_first_iteration = true;
         // allocates memory for shifted points array and copies original points into it
         (*shifted_points) = alloc_double(NUMBER_OF_POINTS, DIMENSIONS);
         duplicate(original_points, NUMBER_OF_POINTS, DIMENSIONS, shifted_points);
@@ -82,24 +83,26 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
         kernel_matrix = alloc_double(NUMBER_OF_POINTS, NUMBER_OF_POINTS);
 
         // tic
-        gettimeofday (&start, NULL);
+        gettimeofday (&start_w_time, NULL);
 
         // allocates corresponding memory in device
         init_device_memory(original_points, *shifted_points, &d_original_points, &d_shifted_points,
             &d_kernel_matrix, &d_denominator, &d_mean_shift_vector);
         // toc
-        gettimeofday (&end, NULL);
-        seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
+        gettimeofday (&end_w_time, NULL);
+        seq = (double)((end_w_time.tv_usec - start_w_time.tv_usec)
+            / 1.0e6 + end_w_time.tv_sec - start_w_time.tv_sec);
 
-//        printf("%s wall clock time = %f\n","Device memory allocation", seq);
-        // to create output data file
-        printf("%f ", seq);
+        if (params.verbose){
+            printf("Device memory allocation wall clock time = %f\n\n", seq);
+        }
     }
 
     // finds pairwise distance matrix (inside radius)
     // [I, D] = rangesearch(x,y,h);
     calculate_kernel_matrix(d_shifted_points, d_original_points, d_kernel_matrix, deviation,
-        &kernel_matrix);
+        &kernel_matrix, &tmp_w_memcpy_time);
+    w_memcpy_time += tmp_w_memcpy_time;
 
     // calculates denominator
     calculate_denominator(d_kernel_matrix, d_denominator);
@@ -114,7 +117,9 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
     gpuErrchk( cudaMalloc(&(d_new_shift.elements), size) );
 
     shift_points(d_kernel_matrix, d_original_points, d_shifted_points, d_new_shift, d_denominator,
-        d_mean_shift_vector, kernel_matrix, original_points, &new_shift, &mean_shift_vector);
+        d_mean_shift_vector, kernel_matrix, original_points, &new_shift, &mean_shift_vector,
+        &tmp_w_memcpy_time);
+    w_memcpy_time += tmp_w_memcpy_time;
 
     // frees previously shifted points, they're now garbage
     free((*shifted_points)[0]);
@@ -147,12 +152,16 @@ int meanshift(double **original_points, double ***shifted_points, int deviation
     }
 
     // iterates until convergence
-    if (current_norm > opt->epsilon) {
+    if (current_norm > params.epsilon) {
         ++iteration;
-        meanshift(original_points, shifted_points, deviation, opt);
+        meanshift(original_points, shifted_points, deviation);
     }
 
-    if (iteration == 0){
+    if (is_first_iteration){
+        if (params.verbose){
+            printf("\nCopying between device and host wall clock time = %f\n", w_memcpy_time);
+        }
+
         // cleans up allocations
         free(mean_shift_vector[0]);
         free(mean_shift_vector);
@@ -206,7 +215,7 @@ void init_device_memory(double **original_points, double **shifted_points,
 }
 
 void calculate_kernel_matrix(Matrix d_shifted_points, Matrix d_original_points,
-    Matrix d_kernel_matrix, double deviation, double ***kernel_matrix){
+    Matrix d_kernel_matrix, double deviation, double ***kernel_matrix, double *w_memcpy_time){
     int size;
     static bool first_iter = true;
     // gets max block size supported from the device
@@ -242,17 +251,15 @@ void calculate_kernel_matrix(Matrix d_shifted_points, Matrix d_original_points,
     size = NUMBER_OF_POINTS * NUMBER_OF_POINTS * sizeof(double);
 
     // tic
-    gettimeofday (&start, NULL);
+    gettimeofday (&start_w_time, NULL);
+
     gpuErrchk( cudaMemcpy(&((*kernel_matrix)[0][0]), d_kernel_matrix.elements
         , size, cudaMemcpyDeviceToHost) );
 
     // toc
-    gettimeofday (&end, NULL);
-    seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
-
-//    printf("%s wall clock time = %f\n","Copying from device to host", seq);
-    // to create output data file
-        printf("%f ", seq);
+    gettimeofday (&end_w_time, NULL);
+    *w_memcpy_time = (double)((end_w_time.tv_usec - start_w_time.tv_usec)
+        / 1.0e6 + end_w_time.tv_sec - start_w_time.tv_sec);
 }
 
 void calculate_denominator(Matrix d_kernel_matrix, Matrix d_denominator){
@@ -289,7 +296,8 @@ void calculate_denominator(Matrix d_kernel_matrix, Matrix d_denominator){
 
 void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shifted_points,
     Matrix d_new_shift, Matrix d_denominator, Matrix d_mean_shift_vector, double **kernel_matrix,
-    double **original_points, double ***new_shift, double ***mean_shift_vector){
+    double **original_points, double ***new_shift, double ***mean_shift_vector,
+    double *w_memcpy_time){
     int size;
     static bool first_iter = true;
     // gets max block size supported from the device
@@ -325,7 +333,7 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
     size = NUMBER_OF_POINTS * DIMENSIONS * sizeof(double);
 
     // tic
-    gettimeofday (&start, NULL);
+    gettimeofday (&start_w_time, NULL);
 
     gpuErrchk( cudaMemcpy(&((*new_shift)[0][0]), d_new_shift.elements
         , size, cudaMemcpyDeviceToHost) );
@@ -333,13 +341,9 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
         , size, cudaMemcpyDeviceToHost) );
 
     // toc
-    gettimeofday (&end, NULL);
-    seq = (double)((end.tv_usec - start.tv_usec)/1.0e6 + end.tv_sec - start.tv_sec);
-
-//    printf("%s wall clock time = %f\n","Copying from device to host", seq);
-    // to create output data file
-        printf("%f ", seq);
-
+    gettimeofday (&end_w_time, NULL);
+    *w_memcpy_time = (double)((end_w_time.tv_usec - start_w_time.tv_usec)
+        / 1.0e6 + end_w_time.tv_sec - start_w_time.tv_sec);
 }
 
 void free_device_memory(Matrix d_original_points, Matrix d_kernel_matrix, Matrix d_denominator,
