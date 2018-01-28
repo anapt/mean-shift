@@ -27,7 +27,7 @@ extern cudaDeviceProp device_properties;
 void set_GPU();
 
 //Function meanshift recursively shifts original points according to the mean-shift algorithm saving
-//the result to shiftedPoints. Struct opt has user options, h is the desirable deviation
+//the result to shiftedPoints, h is the desirable deviation
 int meanshift(double **original_points, double ***shifted_points, int h);
 
 //Function init_device_memory allocates memory for necessary arrays in the device
@@ -53,6 +53,6 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
 
 //Function free_device_memory frees device's previously allocated memory
 void free_device_memory(Matrix d_original_points, Matrix d_kernel_matrix, Matrix d_denominator,
-    Matrix d_new_shift);
+    Matrix d_shifted_points);
 
 #endif //SERIAL_GPU_UTILS_H

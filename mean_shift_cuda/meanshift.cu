@@ -16,7 +16,7 @@ struct timeval startwtime, endwtime;
 double seq_time;
 
 int main(int argc, char **argv){
-    int iterations = 0;
+    int recursions = 0;
     double **vectors, **shifted_points;
     char *labels;
 
@@ -26,21 +26,20 @@ int main(int argc, char **argv){
     //get_args(argc, argv, &params); //commented out while in development
     init(&vectors, &labels);
 
-    //save_matrix(vectors, 0);
-
     // tic
     gettimeofday (&startwtime, NULL);
-    iterations = meanshift(vectors, &shifted_points, DEVIATION);
+    recursions = meanshift(vectors, &shifted_points, DEVIATION);
 
     // toc
     gettimeofday (&endwtime, NULL);
     seq_time = (double)((endwtime.tv_usec - startwtime.tv_usec)/1.0e6 + endwtime.tv_sec - startwtime.tv_sec);
     
 
-    printf("\nTotal number of iterations = %d\n", iterations);
+    printf("\nTotal number of recursions = %d\n", recursions);
     printf("%s wall clock time = %f\n","Mean Shift", seq_time);
-//    printf("%f \n", seq_time);
 
-    //TODO write output points to file -> plot later
-    //save_matrix(shifted_points, iterations);
+    free(vectors[0]);
+    free(vectors);
+    free(shifted_points[0]);
+    free(shifted_points);
 }

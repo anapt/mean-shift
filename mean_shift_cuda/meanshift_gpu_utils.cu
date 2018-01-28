@@ -53,19 +53,19 @@ void set_GPU(){
 int meanshift(double **original_points, double ***shifted_points, int deviation){
     // host variables
     int size = 0;
-    static int iteration = 0;
+    static int recursion = 0;
     static double **kernel_matrix, **mean_shift_vector, w_memcpy_time;
     double **new_shift, current_norm = 0, tmp_w_memcpy_time;
-    bool is_first_iteration = false;
+    bool is_first_recursion = false;
 
     // device variables
     static Matrix d_original_points, d_shifted_points, d_kernel_matrix, d_denominator,
         d_mean_shift_vector;
     Matrix d_new_shift;
 
-    // allocates memory and copies original points on first iteration
-    if (iteration == 0 || (*shifted_points) == NULL){
-        is_first_iteration = true;
+    // allocates memory and copies original points on first recursion
+    if (recursion == 0 || (*shifted_points) == NULL){
+        is_first_recursion = true;
         // allocates memory for shifted points array and copies original points into it
         (*shifted_points) = alloc_double(NUMBER_OF_POINTS, DIMENSIONS);
         duplicate(original_points, NUMBER_OF_POINTS, DIMENSIONS, shifted_points);
@@ -123,12 +123,13 @@ int meanshift(double **original_points, double ***shifted_points, int deviation)
 
     // frees previously shifted points, they're now garbage
     free((*shifted_points)[0]);
+    gpuErrchk( cudaFree(d_shifted_points.elements) );
     // updates shifted points pointer to the new array address
     shifted_points = &new_shift;
     d_shifted_points.elements = d_new_shift.elements;
 
     if (params.display){
-        save_matrix((*shifted_points), iteration);
+        save_matrix((*shifted_points), recursion);
     }
 
     // calculates norm of the new mean shift vector in GPU using "cuBlas" library function
@@ -148,16 +149,16 @@ int meanshift(double **original_points, double ***shifted_points, int deviation)
     }
 
     if (params.verbose){
-        printf("Iteration n. %d, error\t%f \n", iteration, current_norm);
+        printf("Recursion n. %d, error\t%f \n", recursion, current_norm);
     }
 
-    // iterates until convergence
+    // recurses until convergence
     if (current_norm > params.epsilon) {
-        ++iteration;
+        ++recursion;
         meanshift(original_points, shifted_points, deviation);
     }
 
-    if (is_first_iteration){
+    if (is_first_recursion){
         if (params.verbose){
             printf("\nCopying between device and host wall clock time = %f\n", w_memcpy_time);
         }
@@ -168,10 +169,10 @@ int meanshift(double **original_points, double ***shifted_points, int deviation)
         free(kernel_matrix[0]);
         free(kernel_matrix);
 
-        free_device_memory(d_original_points, d_kernel_matrix, d_denominator, d_new_shift);
+        free_device_memory(d_original_points, d_kernel_matrix, d_denominator, d_shifted_points);
     }
 
-    return iteration;
+    return recursion;
 }
 
 void init_device_memory(double **original_points, double **shifted_points,
@@ -291,7 +292,6 @@ void calculate_denominator(Matrix d_kernel_matrix, Matrix d_denominator){
         printf("dimGrid.x = %d, dimGrid.y = %d\n\n", dimGrid.x, dimGrid.y);
         first_iter = false;
     }
-
 }
 
 void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shifted_points,
@@ -347,10 +347,10 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
 }
 
 void free_device_memory(Matrix d_original_points, Matrix d_kernel_matrix, Matrix d_denominator,
-    Matrix d_new_shift){
+    Matrix d_shifted_points){
     // frees all memory previously allocated in device
     gpuErrchk( cudaFree(d_original_points.elements) );
     gpuErrchk( cudaFree(d_kernel_matrix.elements) );
     gpuErrchk( cudaFree(d_denominator.elements) );
-    gpuErrchk( cudaFree(d_new_shift.elements) );
+    gpuErrchk( cudaFree(d_shifted_points.elements) );
 }
