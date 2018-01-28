@@ -74,11 +74,13 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
     // each thread block computes one sub-matrix sub_new_shift of C
     Matrix sub_new_shift = GetSubMatrix(new_shift, block_row, block_col, BLOCK_SIZE);
 
-    // shared memory used to store sub_kernel_matrix and sub_original_points respectively
-    __shared__ double *s_sub_kernel_matrix;
-    s_sub_kernel_matrix = (double*)malloc(BLOCK_SIZE * BLOCK_SIZE * sizeof(double));
-    __shared__ double *s_sub_original_points;
-    s_sub_original_points = (double*)malloc(BLOCK_SIZE * BLOCK_SIZE * sizeof(double));
+    // dynamically allocated shared memory used to store sub_kernel_matrix and sub_original_points
+    // respectively
+    extern __shared__ double joined_shared_memory[];
+    // first part of the allocated memory is used for s_sub_kernel_matrix and second part is used
+    // for s_sub_original_points
+    double *s_sub_kernel_matrix = &(joined_shared_memory[0]);
+    double *s_sub_original_points = &(joined_shared_memory[BLOCK_SIZE * BLOCK_SIZE]);
 
     // loops over all the sub-matrices of kernel_matrix and original_points that are required to
     // compute sub_new_shift, multiplies each pair of sub-matrices and accumulates the results

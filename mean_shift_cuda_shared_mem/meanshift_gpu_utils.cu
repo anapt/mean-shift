@@ -122,18 +122,6 @@ int meanshift(double **original_points, double ***shifted_points, int deviation)
         &tmp_w_memcpy_time);
     w_memcpy_time += tmp_w_memcpy_time;
 
-    /*for (int row=0; row<2; ++row){
-        for (int col=0; col<2; ++col){
-            printf("new_shift[%d][%d] = %f\n", row, col, new_shift[row][col]);
-            printf("new_shift[%d][%d] = %f\n", 300+row, 216+col, new_shift[300+row][216+col]);
-            printf("new_shift[%d][%d] = %f\n", 562+row, 487+col, new_shift[562+row][487+col]);
-        }
-    }*/
-
-    /*if(is_first_recursion){
-        exit(0);
-    }*/
-
     // frees previously shifted points, they're now garbage
     free((*shifted_points)[0]);
     gpuErrchk( cudaFree(d_shifted_points.elements) );
@@ -328,13 +316,16 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
     do {
         /*dimBlock.x = requested_block_size;
         dimBlock.y = d_new_shift.width;*/
-        dimBlock.x = 2;
-        dimBlock.y = 2;
+        dimBlock.x = min(d_new_shift.width, d_new_shift.height);
+        dimBlock.y = min(d_new_shift.width, d_new_shift.height);
         dimGrid.x = (d_new_shift.height + dimBlock.x - 1) / dimBlock.x;
-        dimGrid.y = 1;
+        dimGrid.y = (d_new_shift.height + dimBlock.x - 1) / dimBlock.x;
 
-        shift_points_kernel<<<dimGrid, dimBlock>>>(d_original_points, d_kernel_matrix, d_shifted_points,
-            d_new_shift, d_denominator, d_mean_shift_vector);
+        int shared_memory_size = dimBlock.x * 2 * sizeof(double);
+        //Kernel <<<numBlocks, threadsPerBlock, sharedMemory>>> (count_a, count_b);
+
+        shift_points_kernel<<<dimGrid, dimBlock, shared_memory_size>>>(d_original_points,
+            d_kernel_matrix, d_shifted_points, d_new_shift, d_denominator, d_mean_shift_vector);
         if (cudaGetLastError() != cudaSuccess){
             --requested_block_size;
         } else {
