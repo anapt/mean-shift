@@ -5,10 +5,10 @@
 #include "meanshift_utils.h"
 #include "meanshift_gpu_utils.h"
 
-int DEVIATION = 1;
-int NUMBER_OF_POINTS = 600;
+int DEVIATION = 31000;
+int NUMBER_OF_POINTS = 5000;
 int DIMENSIONS = 2;
-const char *POINTS_FILENAME = "../data/X.bin";
+char* POINTS_FILENAME = "../data/s4";
 const char *LABELS_FILENAME = "../data/L.bin";
 parameters params;
 
