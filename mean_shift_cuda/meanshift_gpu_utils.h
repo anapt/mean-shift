@@ -27,7 +27,7 @@ extern cudaDeviceProp device_properties;
 void set_GPU();
 
 //Function meanshift recursively shifts original points according to the mean-shift algorithm saving
-//the result to shiftedPoints, h is the desirable deviation
+//the result to shiftedPoints, h is the desired deviation
 int meanshift(double **original_points, double ***shifted_points, int h);
 
 //Function init_device_memory allocates memory for necessary arrays in the device
