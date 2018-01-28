@@ -1,0 +1,34 @@
+Device chosen is "GeForce GTX 480"
+Device has 15 multi processors and compute capability 2.0
+Max threads per block supported are 1024
+
+Reading dataset and labels...
+Done.
+
+0.043654 calculate_kernel_matrix_kernel called with:
+dimBlock.x = 30, dimBlock.y = 30
+dimGrid.x = 20, dimGrid.y = 20
+
+0.003856 calculate_denominator called with:
+dimBlock.x = 1024, dimBlock.y = 1
+dimGrid.x = 1, dimGrid.y = 1
+
+shift_points_kernel called with:
+dimBlock.x = 448, dimBlock.y = 2
+dimGrid.x = 2, dimGrid.y = 1
+
+0.000053 Iteration n. 0, error	7.503378 
+0.001773 0.000049 Iteration n. 1, error	2.319695 
+0.001640 0.000047 Iteration n. 2, error	0.968228 
+0.001495 0.000046 Iteration n. 3, error	0.493493 
+0.001435 0.000050 Iteration n. 4, error	0.407053 
+0.001421 0.000050 Iteration n. 5, error	0.240149 
+0.001425 0.000052 Iteration n. 6, error	0.222551 
+0.001418 0.000050 Iteration n. 7, error	0.158582 
+0.001413 0.000051 Iteration n. 8, error	0.070010 
+0.001419 0.000053 Iteration n. 9, error	0.006547 
+0.001416 0.000050 Iteration n. 10, error	0.000603 
+0.001413 0.000053 Iteration n. 11, error	0.000056 
+
+Total number of iterations = 11
+Mean Shift wall clock time = 0.283774
