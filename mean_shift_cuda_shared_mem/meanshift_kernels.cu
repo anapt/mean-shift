@@ -66,15 +66,12 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
     int row = threadIdx.x;
     int col = threadIdx.y;
 
-        // performs calculations only if thread's indexes are within matrix bounds
-    //if (row * new_shift.width + col >= new_shift.width * new_shift.height){
-    /*if (new_shift.stride * BLOCK_SIZE * block_row + BLOCK_SIZE * block_col >=
-        new_shift.width * new_shift.height){*/
+    // performs calculations only if thread's indexes are within matrix bounds
     if (BLOCK_SIZE * block_row >= new_shift.height || BLOCK_SIZE * block_col >= new_shift.width){
         return;
     }
 
-    // Each thread block computes one sub-matrix sub_new_shift of C
+    // each thread block computes one sub-matrix sub_new_shift of C
     Matrix sub_new_shift = GetSubMatrix(new_shift, block_row, block_col, BLOCK_SIZE);
 
     // shared memory used to store sub_kernel_matrix and sub_original_points respectively
@@ -84,7 +81,7 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
     s_sub_original_points = (double*)malloc(BLOCK_SIZE * BLOCK_SIZE * sizeof(double));
 
     // loops over all the sub-matrices of kernel_matrix and original_points that are required to
-    //compute sub_new_shift, multiplies each pair of sub-matrices and accumulates the results
+    // compute sub_new_shift, multiplies each pair of sub-matrices and accumulates the results
     for (int sub_matrix_index = 0; sub_matrix_index < (kernel_matrix.width / BLOCK_SIZE); ++sub_matrix_index) {
 
         // gets sub-matrix sub_kernel_matrix of kernel_matrix
@@ -104,8 +101,8 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
 
         // multiplies sub_kernel_matrix and sub_original_points
         for (int element_index = 0; element_index < BLOCK_SIZE; ++element_index){
-            cell_value += s_sub_kernel_matrix[row * sub_kernel_matrix.stride + element_index] *
-                s_sub_original_points[element_index * sub_original_points.stride + col];
+            cell_value += s_sub_kernel_matrix[row * BLOCK_SIZE + element_index] *
+                s_sub_original_points[element_index * BLOCK_SIZE + col];
         }
 
         // synchronizes to make sure that the preceding computation is done before loading two new
@@ -114,21 +111,15 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
     }
 
     // new_shift elements are calculated by dividing with the denominator
-    int cell_row = (block_row * BLOCK_SIZE + row) * new_shift.stride;
-    int cell_col = block_col * BLOCK_SIZE + col;
-    //sub_new_shift.elements[cell_row + cell_col] = cell_value / denominator.elements[cell_row];
     sub_new_shift.elements[row * sub_new_shift.stride + col] =
         cell_value / denominator.elements[block_row * BLOCK_SIZE + row];
 
-    // calculates mean-shift vector
-    /*mean_shift_vector.elements[(block_row * BLOCK_SIZE + row) * mean_shift_vector.stride
-        + (block_col * BLOCK_SIZE + col)] =
-        sub_new_shift.elements[row * sub_new_shift.stride + col] -
-        shifted_points.elements[(block_row * BLOCK_SIZE + row) * shifted_points.stride
-        + (block_col * BLOCK_SIZE + col)];*/
 
-    /*free(s_sub_kernel_matrix);
-    free(s_sub_original_points);*/
+    int cell_row = block_row * BLOCK_SIZE + row;
+    int cell_col = block_col * BLOCK_SIZE + col;
+    mean_shift_vector.elements[cell_row * mean_shift_vector.stride + cell_col] =
+        sub_new_shift.elements[row * sub_new_shift.stride + col] -
+        shifted_points.elements[cell_row * shifted_points.stride + cell_col];
 }
 
 // Get the BLOCK_SIZExBLOCK_SIZE sub-matrix Asub of A that is
@@ -138,7 +129,7 @@ __device__ Matrix GetSubMatrix(Matrix A, int row, int col, int BLOCK_SIZE){
     Matrix Asub;
     Asub.width = BLOCK_SIZE;
     Asub.height = BLOCK_SIZE;
-    Asub.stride = BLOCK_SIZE;
+    Asub.stride = A.stride;
     Asub.elements = &(A.elements[A.stride * BLOCK_SIZE * row + BLOCK_SIZE * col]);
     return Asub;
 }

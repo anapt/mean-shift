@@ -21,7 +21,7 @@ int main(int argc, char **argv){
     char *labels;
 
     params.epsilon = 0.0001;
-    params.verbose = false;
+    params.verbose = true;
     params.display = true;
     //get_args(argc, argv, &params); //commented out while in development
     init(&vectors, &labels);
