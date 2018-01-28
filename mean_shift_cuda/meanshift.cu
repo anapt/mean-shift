@@ -8,7 +8,7 @@
 int DEVIATION = 31000;
 int NUMBER_OF_POINTS = 5000;
 int DIMENSIONS = 2;
-char* POINTS_FILENAME = "../data/s4";
+const char* POINTS_FILENAME = "../data/s4";
 const char *LABELS_FILENAME = "../data/L.bin";
 parameters params;
 
