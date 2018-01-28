@@ -67,12 +67,13 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
     int col = threadIdx.y;
 
     // performs calculations only if thread's indexes are within matrix bounds
-    if (BLOCK_SIZE * block_row >= new_shift.height || BLOCK_SIZE * block_col >= new_shift.width){
+    if ((BLOCK_SIZE * block_row + row) >= new_shift.height ||
+        (BLOCK_SIZE * block_col + col) >= new_shift.width){
         return;
     }
 
     // each thread block computes one sub-matrix sub_new_shift of C
-    Matrix sub_new_shift = GetSubMatrix(new_shift, block_row, block_col, BLOCK_SIZE);
+    Matrix sub_new_shift = get_sub_matrix(new_shift, block_row, block_col, BLOCK_SIZE);
 
     // dynamically allocated shared memory used to store sub_kernel_matrix and sub_original_points
     // respectively
@@ -84,12 +85,14 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
 
     // loops over all the sub-matrices of kernel_matrix and original_points that are required to
     // compute sub_new_shift, multiplies each pair of sub-matrices and accumulates the results
-    for (int sub_matrix_index = 0; sub_matrix_index < (kernel_matrix.width / BLOCK_SIZE); ++sub_matrix_index) {
+    for (int sub_matrix_index = 0;
+            sub_matrix_index < ((kernel_matrix.width + BLOCK_SIZE - 1) / BLOCK_SIZE);
+            ++sub_matrix_index) {
 
         // gets sub-matrix sub_kernel_matrix of kernel_matrix
-        Matrix sub_kernel_matrix = GetSubMatrix(kernel_matrix, block_row, sub_matrix_index, BLOCK_SIZE);
+        Matrix sub_kernel_matrix = get_sub_matrix(kernel_matrix, block_row, sub_matrix_index, BLOCK_SIZE);
         // gets sub-matrix sub_original_points of original_points
-        Matrix sub_original_points = GetSubMatrix(original_points, sub_matrix_index, block_col, BLOCK_SIZE);
+        Matrix sub_original_points = get_sub_matrix(original_points, sub_matrix_index, block_col, BLOCK_SIZE);
 
         // loads s_sub_kernel_matrix and s_sub_original_points from device global memory to shared
         //memory, each thread loads one element of each sub-matrix
@@ -116,7 +119,6 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
     sub_new_shift.elements[row * sub_new_shift.stride + col] =
         cell_value / denominator.elements[block_row * BLOCK_SIZE + row];
 
-
     int cell_row = block_row * BLOCK_SIZE + row;
     int cell_col = block_col * BLOCK_SIZE + col;
     mean_shift_vector.elements[cell_row * mean_shift_vector.stride + cell_col] =
@@ -124,10 +126,9 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
         shifted_points.elements[cell_row * shifted_points.stride + cell_col];
 }
 
-// Get the BLOCK_SIZExBLOCK_SIZE sub-matrix Asub of A that is
-// located col sub-matrices to the right and row sub-matrices down
-// from the upper-left corner of A
-__device__ Matrix GetSubMatrix(Matrix A, int row, int col, int BLOCK_SIZE){
+// gets the BLOCK_SIZExBLOCK_SIZE sub-matrix Asub of A that is located col sub-matrices to the right
+// and row sub-matrices down from the upper-left corner of A
+__device__ Matrix get_sub_matrix(Matrix A, int row, int col, int BLOCK_SIZE){
     Matrix Asub;
     Asub.width = BLOCK_SIZE;
     Asub.height = BLOCK_SIZE;

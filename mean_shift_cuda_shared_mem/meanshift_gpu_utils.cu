@@ -304,14 +304,13 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
     Matrix d_new_shift, Matrix d_denominator, Matrix d_mean_shift_vector, double **kernel_matrix,
     double **original_points, double ***new_shift, double ***mean_shift_vector,
     double *w_memcpy_time){
-    static int min_dimension = min(d_new_shift.width, d_new_shift.height);
     int shared_memory_size, size;
     static bool first_iter = true;
     // gets max block size supported from the device
     static int max_block_size = device_properties.maxThreadsPerBlock;
     // requests a block size equal to
-    static int requested_block_size = (min_dimension <= sqrt(max_block_size))
-        ? min_dimension     // the min dimension if it's lower than the maximum block size supported
+    static int requested_block_size = (d_new_shift.width <= sqrt(max_block_size))
+        ? d_new_shift.width // the min dimension if it's lower than the maximum block size supported
         : max_block_size;   // the maximum block size otherwise
     bool block_size_too_big = true;
 
@@ -321,7 +320,7 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
         dimBlock.x = requested_block_size;
         dimBlock.y = requested_block_size;
         dimGrid.x = (d_new_shift.height + dimBlock.x - 1) / dimBlock.x;
-        dimGrid.y = (d_new_shift.height + dimBlock.x - 1) / dimBlock.x;
+        dimGrid.y = (d_new_shift.width + dimBlock.y - 1) / dimBlock.y;
 
         // size for kernel's dynamically allocated array
         // the size FOR EACH array is calculated as BLOCK_SIZE * BLOCK_SIZE * size_of_double

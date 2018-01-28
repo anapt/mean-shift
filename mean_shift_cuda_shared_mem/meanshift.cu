@@ -6,7 +6,7 @@
 #include "meanshift_gpu_utils.h"
 
 int DEVIATION = 1;
-int NUMBER_OF_POINTS = 600;
+int NUMBER_OF_POINTS = 587;
 int DIMENSIONS = 2;
 const char *POINTS_FILENAME = "../data/X.bin";
 const char *LABELS_FILENAME = "../data/L.bin";

@@ -24,6 +24,6 @@ __global__ void denominator_kernel(Matrix denominator, Matrix kernel_matrix);
 __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix,
     Matrix shifted_points, Matrix new_shift, Matrix denominator, Matrix mean_shift_vector);
 
-__device__ Matrix GetSubMatrix(Matrix A, int row, int col, int BLOCK_SIZE);
+__device__ Matrix get_sub_matrix(Matrix A, int row, int col, int BLOCK_SIZE);
 
 #endif //SERIAL_KERNELS_H
