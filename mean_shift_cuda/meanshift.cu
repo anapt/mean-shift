@@ -23,7 +23,7 @@ int main(int argc, char **argv){
     params.epsilon = 0.0001;
     params.verbose = false;
     params.display = true;
-
+printf("here::");
     //get_args(argc, argv, &params); //commented out while in development
     init(&vectors, &labels);
 
@@ -31,7 +31,7 @@ int main(int argc, char **argv){
 
     // tic
     gettimeofday (&startwtime, NULL);
-
+	printf("wtf");
     iterations = meanshift(vectors, &shifted_points, DEVIATION, &params);
 
     // toc
