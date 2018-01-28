@@ -304,25 +304,29 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
     Matrix d_new_shift, Matrix d_denominator, Matrix d_mean_shift_vector, double **kernel_matrix,
     double **original_points, double ***new_shift, double ***mean_shift_vector,
     double *w_memcpy_time){
-    int size;
+    static int min_dimension = min(d_new_shift.width, d_new_shift.height);
+    int shared_memory_size, size;
     static bool first_iter = true;
     // gets max block size supported from the device
     static int max_block_size = device_properties.maxThreadsPerBlock;
-    static int requested_block_size = (int)(max_block_size / d_new_shift.width);
+    // requests a block size equal to
+    static int requested_block_size = (min_dimension <= sqrt(max_block_size))
+        ? min_dimension     // the min dimension if it's lower than the maximum block size supported
+        : max_block_size;   // the maximum block size otherwise
     bool block_size_too_big = true;
 
     dim3 dimBlock;
     dim3 dimGrid;
     do {
-        /*dimBlock.x = requested_block_size;
-        dimBlock.y = d_new_shift.width;*/
-        dimBlock.x = min(d_new_shift.width, d_new_shift.height);
-        dimBlock.y = min(d_new_shift.width, d_new_shift.height);
+        dimBlock.x = requested_block_size;
+        dimBlock.y = requested_block_size;
         dimGrid.x = (d_new_shift.height + dimBlock.x - 1) / dimBlock.x;
         dimGrid.y = (d_new_shift.height + dimBlock.x - 1) / dimBlock.x;
 
-        int shared_memory_size = dimBlock.x * 2 * sizeof(double);
-        //Kernel <<<numBlocks, threadsPerBlock, sharedMemory>>> (count_a, count_b);
+        // size for kernel's dynamically allocated array
+        // the size FOR EACH array is calculated as BLOCK_SIZE * BLOCK_SIZE * size_of_double
+        // the arrays nedded in kernel are two
+        shared_memory_size = dimBlock.x * dimBlock.x * sizeof(double) * 2;
 
         shift_points_kernel<<<dimGrid, dimBlock, shared_memory_size>>>(d_original_points,
             d_kernel_matrix, d_shifted_points, d_new_shift, d_denominator, d_mean_shift_vector);
