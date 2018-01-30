@@ -40,6 +40,9 @@ void set_GPU(){
     }
     // sets the device
     gpuErrchk( cudaSetDevice(max_device) );
+    // lastly sets shared memory bank size to 8 bytes since data are represented by doubles
+    gpuErrchk( cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte) );
+
     if (params.verbose){
         printf("Device chosen is \"%s\"\n"
             "Device has %d multi processors and compute capability %d.%d\n"
@@ -324,8 +327,8 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
 
         // size for kernel's dynamically allocated array
         // the size FOR EACH array is calculated as BLOCK_SIZE * BLOCK_SIZE * size_of_double
-        // the arrays nedded in kernel are two
-        shared_memory_size = dimBlock.x * dimBlock.x * sizeof(double) * 2;
+        // the arrays needed in kernel are two
+        shared_memory_size = (int)(dimBlock.x * dimBlock.x * sizeof(double) * 2);
 
         shift_points_kernel<<<dimGrid, dimBlock, shared_memory_size>>>(d_original_points,
             d_kernel_matrix, d_shifted_points, d_new_shift, d_denominator, d_mean_shift_vector);

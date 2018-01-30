@@ -55,7 +55,7 @@ __global__ void denominator_kernel(Matrix denominator, Matrix kernel_matrix){
 
 __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix,
     Matrix shifted_points, Matrix new_shift, Matrix denominator, Matrix mean_shift_vector){
-    int BLOCK_SIZE = blockDim.y;
+    int BLOCK_SIZE = blockDim.x;
     int block_row = blockIdx.x;
     int block_col = blockIdx.y;
 
@@ -67,8 +67,8 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
     int col = threadIdx.y;
 
     // performs calculations only if thread's indexes are within matrix bounds
-    if ((BLOCK_SIZE * block_row + row) >= new_shift.height ||
-        (BLOCK_SIZE * block_col + col) >= new_shift.width){
+    if ((BLOCK_SIZE * block_row + row) > new_shift.height ||
+        (BLOCK_SIZE * block_col + col) > new_shift.width){
         return;
     }
 
@@ -78,17 +78,13 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
     // dynamically allocated shared memory used to store sub_kernel_matrix and sub_original_points
     // respectively
     extern __shared__ double joined_shared_memory[];
+    // makes sure enough memory has been allocated
+    joined_shared_memory[BLOCK_SIZE * BLOCK_SIZE * 2] = 0;
 
     // first part of the allocated memory is used for s_sub_kernel_matrix and second part is used
     // for s_sub_original_points
-    double *s_sub_kernel_matrix = &(joined_shared_memory[0]);
-    double *s_sub_original_points = &(joined_shared_memory[BLOCK_SIZE * BLOCK_SIZE]);
-
-    // cancel execution if allocation failed
-    if (sizeof(s_sub_kernel_matrix) != BLOCK_SIZE * BLOCK_SIZE * 2){
-        __threadfence();
-        asm("trap;");
-    }
+    double *s_sub_kernel_matrix = (double *)joined_shared_memory;
+    double *s_sub_original_points = (double *)&joined_shared_memory[BLOCK_SIZE * BLOCK_SIZE];
 
     // loops over all the sub-matrices of kernel_matrix and original_points that are required to
     // compute sub_new_shift, multiplies each pair of sub-matrices and accumulates the results
