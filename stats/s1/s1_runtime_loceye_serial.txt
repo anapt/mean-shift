@@ -1,0 +1,33 @@
+Iteration n. 0, error 1434684.624217 
+Iteration n. 1, error 846466.140776 
+Iteration n. 2, error 456756.809962 
+Iteration n. 3, error 232102.841892 
+Iteration n. 4, error 128970.916818 
+Iteration n. 5, error 73131.136038 
+Iteration n. 6, error 42959.583463 
+Iteration n. 7, error 34479.873709 
+Iteration n. 8, error 30952.428863 
+Iteration n. 9, error 24978.110418 
+Iteration n. 10, error 14758.750104 
+Iteration n. 11, error 6515.798691 
+Iteration n. 12, error 2534.949856 
+Iteration n. 13, error 951.600403 
+Iteration n. 14, error 353.770499 
+Iteration n. 15, error 131.188064 
+Iteration n. 16, error 48.640549 
+Iteration n. 17, error 18.049030 
+Iteration n. 18, error 6.706455 
+Iteration n. 19, error 2.496305 
+Iteration n. 20, error 0.931212 
+Iteration n. 21, error 0.348291 
+Iteration n. 22, error 0.130677 
+Iteration n. 23, error 0.049212 
+Iteration n. 24, error 0.018613 
+Iteration n. 25, error 0.007074 
+Iteration n. 26, error 0.002704 
+Iteration n. 27, error 0.001040 
+Iteration n. 28, error 0.000403 
+Iteration n. 29, error 0.000157 
+Iteration n. 30, error 0.000062 
+Total iterations = 30
+Mean Shift wall clock time = 21.889184
