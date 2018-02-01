@@ -1,0 +1,50 @@
+Device chosen is "GeForce GTX 1070"
+Device has 15 multi processors and compute capability 6.1
+Max threads per block supported are 1024
+
+Reading dataset and labels...
+Done.
+
+Device memory allocation wall clock time = 0.094704
+
+calculate_kernel_matrix_kernel called with:
+dimBlock.x = 32, dimBlock.y = 32
+dimGrid.x = 32, dimGrid.y = 32
+
+calculate_denominator called with:
+dimBlock.x = 1024, dimBlock.y = 1
+dimGrid.x = 1, dimGrid.y = 1
+
+shift_points_kernel called with:
+dimBlock.x = 32, dimBlock.y = 32
+dimGrid.x = 32, dimGrid.y = 1
+
+Recursion n. 0, error	212.611066 
+Recursion n. 1, error	51.768217 
+Recursion n. 2, error	18.321997 
+Recursion n. 3, error	7.902559 
+Recursion n. 4, error	3.830385 
+Recursion n. 5, error	1.990884 
+Recursion n. 6, error	1.077207 
+Recursion n. 7, error	0.596253 
+Recursion n. 8, error	0.334476 
+Recursion n. 9, error	0.189225 
+Recursion n. 10, error	0.107681 
+Recursion n. 11, error	0.061545 
+Recursion n. 12, error	0.035299 
+Recursion n. 13, error	0.020304 
+Recursion n. 14, error	0.011708 
+Recursion n. 15, error	0.006766 
+Recursion n. 16, error	0.003918 
+Recursion n. 17, error	0.002273 
+Recursion n. 18, error	0.001321 
+Recursion n. 19, error	0.000769 
+Recursion n. 20, error	0.000448 
+Recursion n. 21, error	0.000262 
+Recursion n. 22, error	0.000153 
+Recursion n. 23, error	0.000090 
+
+Copying between device and host wall clock time = 0.046973
+
+Total number of recursions = 23
+Mean Shift wall clock time = 0.713939
