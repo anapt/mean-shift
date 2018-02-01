@@ -4,10 +4,10 @@
 
 #include "serial_declarations.h"
 
-int DEVIATION = 31000;
-int NUMBER_OF_POINTS = 5000;
-int DIMENSIONS = 2;
-char* POINTS_FILENAME = "../data/s4";
+int DEVIATION = 20;
+int NUMBER_OF_POINTS = 1024;
+int DIMENSIONS = 32;
+char* POINTS_FILENAME = "../data/32";
 char* LABELS_FILENAME = "../data/L.bin";
 
 struct timeval startwtime, endwtime;
