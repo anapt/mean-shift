@@ -1,0 +1,3 @@
+
+Total number of recursions = 125
+Mean Shift wall clock time = 8.656517
