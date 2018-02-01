@@ -320,15 +320,18 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
     dim3 dimBlock;
     dim3 dimGrid;
     do {
-        dimBlock.x = requested_block_size;
-        dimBlock.y = requested_block_size;
+        /*dimBlock.x = requested_block_size;
+        dimBlock.y = requested_block_size;*/
+        //to do
+        dimBlock.x = 240;
+        dimBlock.y = 2;
         dimGrid.x = (d_new_shift.height + dimBlock.x - 1) / dimBlock.x;
         dimGrid.y = (d_new_shift.width + dimBlock.y - 1) / dimBlock.y;
 
         // size for kernel's dynamically allocated array
         // the size FOR EACH array is calculated as BLOCK_SIZE * BLOCK_SIZE * size_of_double
         // the arrays needed in kernel are two
-        shared_memory_size = (int)(dimBlock.x * dimBlock.x * sizeof(double) * 2);
+        shared_memory_size = (int)(dimBlock.x * dimBlock.y * sizeof(double) * 2);
 
         shift_points_kernel<<<dimGrid, dimBlock, shared_memory_size>>>(d_original_points,
             d_kernel_matrix, d_shifted_points, d_new_shift, d_denominator, d_mean_shift_vector);
