@@ -5,10 +5,10 @@
 #include "meanshift_utils.h"
 #include "meanshift_gpu_utils.h"
 
-int DEVIATION = 20;
-int NUMBER_OF_POINTS = 1024;
-int DIMENSIONS = 32;
-const char *POINTS_FILENAME = "../data/32";
+int DEVIATION = 1;
+int NUMBER_OF_POINTS = 600;
+int DIMENSIONS = 2;
+const char *POINTS_FILENAME = "../data/X.bin";
 const char *LABELS_FILENAME = "../data/L.bin";
 parameters params;
 
@@ -33,7 +33,6 @@ int main(int argc, char **argv){
     // toc
     gettimeofday (&endwtime, NULL);
     seq_time = (double)((endwtime.tv_usec - startwtime.tv_usec)/1.0e6 + endwtime.tv_sec - startwtime.tv_sec);
-    
 
     printf("\nTotal number of recursions = %d\n", recursions);
     printf("%s wall clock time = %f\n","Mean Shift", seq_time);

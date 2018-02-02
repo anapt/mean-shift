@@ -55,23 +55,25 @@ void set_GPU(){
 
 int meanshift(double **original_points, double ***shifted_points, int deviation){
     // host variables
-    int size = 0;
     static int recursion = 0;
-    static double **kernel_matrix, **mean_shift_vector, w_memcpy_time;
-    double **new_shift, current_norm = 0, tmp_w_memcpy_time;
+    static double **kernel_matrix,  **new_shift, **mean_shift_vector, w_memcpy_time;
+    double current_norm = 0, tmp_w_memcpy_time;
     bool is_first_recursion = false;
 
     // device variables
     static Matrix d_original_points, d_shifted_points, d_kernel_matrix, d_denominator,
-        d_mean_shift_vector;
-    Matrix d_new_shift;
+        d_new_shift, d_mean_shift_vector;
 
     // allocates memory and copies original points on first recursion
     if (recursion == 0 || (*shifted_points) == NULL){
         is_first_recursion = true;
+
         // allocates memory for shifted points array and copies original points into it
         (*shifted_points) = alloc_double(NUMBER_OF_POINTS, DIMENSIONS);
         duplicate(original_points, NUMBER_OF_POINTS, DIMENSIONS, shifted_points);
+
+        // allocates memory for new shift array
+        new_shift = alloc_double(NUMBER_OF_POINTS, DIMENSIONS);
 
         // allocates memory for mean shift vector
         mean_shift_vector = alloc_double(NUMBER_OF_POINTS, DIMENSIONS);
@@ -90,7 +92,7 @@ int meanshift(double **original_points, double ***shifted_points, int deviation)
 
         // allocates corresponding memory in device
         init_device_memory(original_points, *shifted_points, &d_original_points, &d_shifted_points,
-            &d_kernel_matrix, &d_denominator, &d_mean_shift_vector);
+            &d_kernel_matrix, &d_denominator, &d_new_shift, &d_mean_shift_vector);
         // toc
         gettimeofday (&end_w_time, NULL);
         seq = (double)((end_w_time.tv_usec - start_w_time.tv_usec)
@@ -110,27 +112,19 @@ int meanshift(double **original_points, double ***shifted_points, int deviation)
     // calculates denominator
     calculate_denominator(d_kernel_matrix, d_denominator);
 
-    // creates new y vector
-    // allocates memory in every recursion
-    new_shift = alloc_double(NUMBER_OF_POINTS, DIMENSIONS);
-    // allocates corresponding memory in device
-    d_new_shift.width = DIMENSIONS;
-    d_new_shift.height = NUMBER_OF_POINTS;
-    d_new_shift.stride = d_new_shift.width;
-    size = NUMBER_OF_POINTS * DIMENSIONS * sizeof(double);
-    gpuErrchk( cudaMalloc(&(d_new_shift.elements), size) );
-
     shift_points(d_kernel_matrix, d_original_points, d_shifted_points, d_new_shift, d_denominator,
         d_mean_shift_vector, kernel_matrix, original_points, &new_shift, &mean_shift_vector,
         &tmp_w_memcpy_time);
     w_memcpy_time += tmp_w_memcpy_time;
 
-    // frees previously shifted points, they're now garbage
-    free((*shifted_points)[0]);
-    gpuErrchk( cudaFree(d_shifted_points.elements) );
     // updates shifted points pointer to the new array address
+    double ***temp = shifted_points;
     shifted_points = &new_shift;
+    new_shift = *temp;
+
+    double *d_temp = d_shifted_points.elements;
     d_shifted_points.elements = d_new_shift.elements;
+    d_new_shift.elements = d_temp;
 
     if (params.display){
         save_matrix((*shifted_points), recursion);
@@ -172,8 +166,11 @@ int meanshift(double **original_points, double ***shifted_points, int deviation)
         free(mean_shift_vector);
         free(kernel_matrix[0]);
         free(kernel_matrix);
+        //free(new_shift[0]);
+        //free(new_shift);
 
-        free_device_memory(d_original_points, d_kernel_matrix, d_denominator, d_shifted_points);
+        free_device_memory(d_original_points, d_kernel_matrix, d_denominator, d_shifted_points,
+            d_new_shift);
     }
 
     return recursion;
@@ -181,7 +178,7 @@ int meanshift(double **original_points, double ***shifted_points, int deviation)
 
 void init_device_memory(double **original_points, double **shifted_points,
     Matrix *d_original_points, Matrix *d_shifted_points, Matrix *d_kernel_matrix,
-    Matrix *d_denominator, Matrix *d_mean_shift_vector){
+    Matrix *d_denominator, Matrix *d_new_shift, Matrix *d_mean_shift_vector){
     int size;
 
     // allocates memory for original_points in GPU and copies the array
@@ -215,6 +212,13 @@ void init_device_memory(double **original_points, double **shifted_points,
     d_denominator->stride = d_denominator->width;
     size = NUMBER_OF_POINTS * sizeof(double);
     gpuErrchk( cudaMalloc(&(d_denominator->elements), size) );
+
+    // allocates memory for new_shift in GPU
+    d_new_shift->width = DIMENSIONS;
+    d_new_shift->height = NUMBER_OF_POINTS;
+    d_new_shift->stride = d_new_shift->width;
+    size = NUMBER_OF_POINTS * DIMENSIONS * sizeof(double);
+    gpuErrchk( cudaMalloc(&(d_new_shift->elements), size) );
 
     // allocates memory for mean_shift_vector in GPU
     d_mean_shift_vector->width = DIMENSIONS;
@@ -367,10 +371,11 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
 }
 
 void free_device_memory(Matrix d_original_points, Matrix d_kernel_matrix, Matrix d_denominator,
-    Matrix d_shifted_points){
+    Matrix d_shifted_points, Matrix d_new_shift){
     // frees all memory previously allocated in device
     gpuErrchk( cudaFree(d_original_points.elements) );
     gpuErrchk( cudaFree(d_kernel_matrix.elements) );
     gpuErrchk( cudaFree(d_denominator.elements) );
     gpuErrchk( cudaFree(d_shifted_points.elements) );
+    gpuErrchk( cudaFree(d_new_shift.elements) );
 }

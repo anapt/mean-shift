@@ -1,5 +1,5 @@
-#ifndef SERIAL_UTILS_H    /*    Include guard    */
-#define SERIAL_UTILS_H
+#ifndef MEANSHIFT_UTILS_H    /*    Include guard    */
+#define MEANSHIFT_UTILS_H
 
 #include <stdbool.h>
 
@@ -32,4 +32,4 @@ void print_matrix(double **array, int rows, int cols);
 //If a file already exists new lines are concatenated
 void save_matrix(double **matrix, int iteration);
 
-#endif //SERIAL_UTILS_H
+#endif //MEANSHIFT_UTILS_H

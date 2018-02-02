@@ -1,5 +1,5 @@
-#ifndef SERIAL_KERNELS_H    /*    Include guard    */
-#define SERIAL_KERNELS_H
+#ifndef MEANSHIFT_KERNELS_H    /*    Include guard    */
+#define MEANSHIFT_KERNELS_H
 
 /*      Structures     */
 
@@ -27,4 +27,4 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
 __device__ Matrix get_sub_matrix(Matrix A, int row, int col, int ROW_BLOCK_SIZE,
     int COLUMN_BLOCK_SIZE);
 
-#endif //SERIAL_KERNELS_H
+#endif //MEANSHIFT_KERNELS_H

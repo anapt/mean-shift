@@ -1,5 +1,5 @@
-#ifndef SERIAL_GPU_UTILS_H    /*    Include guard    */
-#define SERIAL_GPU_UTILS_H
+#ifndef MEANSHIFT_GPU_UTILS_H    /*    Include guard    */
+#define MEANSHIFT_GPU_UTILS_H
 
 #include "meanshift_kernels.h"
 
@@ -33,7 +33,7 @@ int meanshift(double **original_points, double ***shifted_points, int h);
 //Function init_device_memory allocates memory for necessary arrays in the device
 void init_device_memory(double **original_points, double **shifted_points,
     Matrix *d_original_points, Matrix *d_shifted_points, Matrix *d_kernel_matrix,
-    Matrix *d_denominator, Matrix *d_new_shift);
+    Matrix *d_denominator, Matrix *d_new_shift, Matrix *d_mean_shift_vector);
 
 //Function calculate_kernel_matrix is a wrapper for the kernel call of the corresponding kernel
 //"calculate_kernel_matrix_kernel" that calculates the kernel matrix
@@ -53,6 +53,6 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
 
 //Function free_device_memory frees device's previously allocated memory
 void free_device_memory(Matrix d_original_points, Matrix d_kernel_matrix, Matrix d_denominator,
-    Matrix d_shifted_points);
+    Matrix d_shifted_points, Matrix d_new_shift);
 
-#endif //SERIAL_GPU_UTILS_H
+#endif //MEANSHIFT_GPU_UTILS_H

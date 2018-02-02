@@ -68,8 +68,8 @@ __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix
     int col = threadIdx.y;
 
     // performs calculations only if thread's indexes are within matrix bounds
-    if ((ROW_BLOCK_SIZE * block_row + row) > new_shift.height ||
-        (COLUMN_BLOCK_SIZE * block_col + col) > new_shift.width){
+    if ((ROW_BLOCK_SIZE * block_row + row) >= new_shift.height ||
+        (COLUMN_BLOCK_SIZE * block_col + col) >= new_shift.width){
         return;
     }
 
