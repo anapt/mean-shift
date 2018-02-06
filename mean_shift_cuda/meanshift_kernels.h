@@ -23,7 +23,5 @@ __global__ void denominator_kernel(Matrix denominator, Matrix kernel_matrix);
 __global__ void shift_points_kernel(Matrix original_points, Matrix kernel_matrix,
     Matrix shifted_points, Matrix new_shift, Matrix denominator, Matrix mean_shift_vector);
 
-//Kernel norm computes the norm of the vector
-__global__ void norm(Matrix mean_shift_vector, double *current_norm);
 
 #endif //SERIAL_KERNELS_H
