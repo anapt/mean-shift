@@ -353,8 +353,8 @@ void calculate_norm(Matrix d_mean_shift_vector, double *current_norm){
     int size;
     static bool first_iter = true;
     // gets max block size supported from the device
-    static int max_block_size = device_properties.maxThreadsPerBlock;
-    static int requested_block_size = (int)(max_block_size / d_mean_shift_vector.width);
+
+    static int requested_block_size = device_properties.maxThreadsPerBlock;
     bool block_size_too_big = true;
 
     dim3 dimBlock;
@@ -364,7 +364,7 @@ void calculate_norm(Matrix d_mean_shift_vector, double *current_norm){
         dimBlock.y = 1;
         dimGrid.x = (d_mean_shift_vector.height + dimBlock.x - 1) / dimBlock.x;
         dimGrid.y = 1;
-
+        
         norm<<<dimGrid, dimBlock>>>(d_mean_shift_vector, current_norm);
         if (cudaGetLastError() != cudaSuccess){
             --requested_block_size;
