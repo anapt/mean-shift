@@ -361,7 +361,7 @@ void calculate_norm(Matrix d_mean_shift_vector, double *current_norm){
     dim3 dimGrid;
     do {
         dimBlock.x = requested_block_size;
-        dimBlock.y = d_mean_shift_vector.width;
+        dimBlock.y = 1;
         dimGrid.x = (d_mean_shift_vector.height + dimBlock.x - 1) / dimBlock.x;
         dimGrid.y = 1;
 
