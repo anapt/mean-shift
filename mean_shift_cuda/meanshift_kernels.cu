@@ -98,7 +98,7 @@ __global__ void norm(Matrix mean_shift_vector, double *current_norm) {
                       * mean_shift_vector.elements[row * mean_shift_vector.width + element_index];
     }
 
-    &current_norm = sqrt(cell_value);
+    current_norm = sqrt(cell_value);
 
 
 //    // new_shift elements are calculated by dividing with the denominator
