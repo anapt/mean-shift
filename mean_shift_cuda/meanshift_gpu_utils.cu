@@ -365,7 +365,7 @@ void calculate_norm(Matrix d_mean_shift_vector, double *current_norm){
         dimGrid.x = (d_mean_shift_vector.height + dimBlock.x - 1) / dimBlock.x;
         dimGrid.y = 1;
 
-        norm<<<dimGrid, dimBlock>>>(d_mean_shift_vector, &current_norm);
+        norm<<<dimGrid, dimBlock>>>(d_mean_shift_vector, current_norm);
         if (cudaGetLastError() != cudaSuccess){
             --requested_block_size;
         } else {
