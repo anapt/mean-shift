@@ -51,10 +51,6 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
     double **original_points, double ***new_shift, double ***mean_shift_vector,
     double *w_memcpy_time);
 
-//Function calculate_norm is a wrapper for the kernel call of the corresponing kernel
-//"norm" that calculate the norm of the mean_shift_vector matrix
-void calculate_norm(Matrix d_mean_shift_vector, double *current_norm);
-
 //Function free_device_memory frees device's previously allocated memory
 void free_device_memory(Matrix d_original_points, Matrix d_kernel_matrix, Matrix d_denominator,
     Matrix d_shifted_points);

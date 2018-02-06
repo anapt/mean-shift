@@ -133,22 +133,20 @@ int meanshift(double **original_points, double ***shifted_points, int deviation)
     }
 
     // calculates norm of the new mean shift vector in GPU using "cuBlas" library function
-    // TODO REPLACE WITH KERNEL NORM
-//    cublasHandle_t handle;
-//    cublasStatus_t cublas_status = cublasCreate(&handle);
-//    if (cublas_status != CUBLAS_STATUS_SUCCESS){
-//        exit(cublas_status);
-//    }
-//    cublas_status = cublasDnrm2(handle, NUMBER_OF_POINTS * DIMENSIONS, d_mean_shift_vector.elements,
-//        1, &current_norm);
-//    if (cublas_status != CUBLAS_STATUS_SUCCESS){
-//        exit(cublas_status);
-//    }
-//    cublas_status = cublasDestroy(handle);
-//    if (cublas_status != CUBLAS_STATUS_SUCCESS){
-//        exit(cublas_status);
-//    }
-    calculate_norm(d_mean_shift_vector, &current_norm);
+    cublasHandle_t handle;
+    cublasStatus_t cublas_status = cublasCreate(&handle);
+    if (cublas_status != CUBLAS_STATUS_SUCCESS){
+        exit(cublas_status);
+    }
+    cublas_status = cublasDnrm2(handle, NUMBER_OF_POINTS * DIMENSIONS, d_mean_shift_vector.elements,
+        1, &current_norm);
+    if (cublas_status != CUBLAS_STATUS_SUCCESS){
+        exit(cublas_status);
+    }
+    cublas_status = cublasDestroy(handle);
+    if (cublas_status != CUBLAS_STATUS_SUCCESS){
+        exit(cublas_status);
+    }
 
 
     if (params.verbose){
@@ -347,41 +345,6 @@ void shift_points(Matrix d_kernel_matrix, Matrix d_original_points, Matrix d_shi
     gettimeofday (&end_w_time, NULL);
     *w_memcpy_time = (double)((end_w_time.tv_usec - start_w_time.tv_usec)
         / 1.0e6 + end_w_time.tv_sec - start_w_time.tv_sec);
-}
-
-void calculate_norm(Matrix d_mean_shift_vector, double *current_norm){
-    int size;
-    static bool first_iter = true;
-    // gets max block size supported from the device
-
-    static int requested_block_size = device_properties.maxThreadsPerBlock;
-    bool block_size_too_big = true;
-
-    dim3 dimBlock;
-    dim3 dimGrid;
-    do {
-        dimBlock.x = requested_block_size;
-        dimBlock.y = 1;
-        dimGrid.x = (d_mean_shift_vector.height + dimBlock.x - 1) / dimBlock.x;
-        dimGrid.y = 1;
-        
-        norm<<<dimGrid, dimBlock>>>(d_mean_shift_vector, current_norm);
-        if (cudaGetLastError() != cudaSuccess){
-            --requested_block_size;
-        } else {
-            block_size_too_big = false;
-            gpuErrchk( cudaDeviceSynchronize() );
-        }
-    } while(block_size_too_big);
-
-    if (first_iter && params.verbose){
-        printf("norm_kernel called with:\n");
-        printf("dimBlock.x = %d, dimBlock.y = %d\n", dimBlock.x, dimBlock.y);
-        printf("dimGrid.x = %d, dimGrid.y = %d\n\n", dimGrid.x, dimGrid.y);
-        first_iter = false;
-    }
-
-    size = NUMBER_OF_POINTS * DIMENSIONS * sizeof(double);
 }
 
 void free_device_memory(Matrix d_original_points, Matrix d_kernel_matrix, Matrix d_denominator,
