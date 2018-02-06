@@ -1,0 +1,152 @@
+Device chosen is "GeForce GTX 1070"
+Device has 15 multi processors and compute capability 6.1
+Max threads per block supported are 1024
+
+Reading dataset and labels...
+Done.
+
+Device memory allocation wall clock time = 0.000885
+
+calculate_kernel_matrix_kernel called with:
+dimBlock.x = 32, dimBlock.y = 32
+dimGrid.x = 157, dimGrid.y = 157
+
+calculate_denominator called with:
+dimBlock.x = 1024, dimBlock.y = 1
+dimGrid.x = 5, dimGrid.y = 1
+
+shift_points_kernel called with:
+dimBlock.x = 240, dimBlock.y = 2
+dimGrid.x = 21, dimGrid.y = 1
+
+Recursion n. 0, error	900676.182157 
+Recursion n. 1, error	711281.993249 
+Recursion n. 2, error	572480.606235 
+Recursion n. 3, error	472793.915972 
+Recursion n. 4, error	391822.446089 
+Recursion n. 5, error	329853.726107 
+Recursion n. 6, error	284520.120142 
+Recursion n. 7, error	251741.146886 
+Recursion n. 8, error	221447.955499 
+Recursion n. 9, error	189542.833610 
+Recursion n. 10, error	165562.480033 
+Recursion n. 11, error	149331.022081 
+Recursion n. 12, error	134648.227158 
+Recursion n. 13, error	118810.681796 
+Recursion n. 14, error	103439.665629 
+Recursion n. 15, error	89152.026717 
+Recursion n. 16, error	79858.091608 
+Recursion n. 17, error	70399.328398 
+Recursion n. 18, error	60903.306505 
+Recursion n. 19, error	53256.394415 
+Recursion n. 20, error	46630.309716 
+Recursion n. 21, error	43169.000362 
+Recursion n. 22, error	40977.848445 
+Recursion n. 23, error	38912.881052 
+Recursion n. 24, error	37470.652381 
+Recursion n. 25, error	36952.180489 
+Recursion n. 26, error	36917.933786 
+Recursion n. 27, error	34428.561476 
+Recursion n. 28, error	33480.690673 
+Recursion n. 29, error	35518.955985 
+Recursion n. 30, error	33061.203927 
+Recursion n. 31, error	30148.792678 
+Recursion n. 32, error	28417.020165 
+Recursion n. 33, error	27655.498686 
+Recursion n. 34, error	27165.134668 
+Recursion n. 35, error	25027.198634 
+Recursion n. 36, error	20710.467322 
+Recursion n. 37, error	16930.822611 
+Recursion n. 38, error	16120.686909 
+Recursion n. 39, error	16815.717356 
+Recursion n. 40, error	17097.038444 
+Recursion n. 41, error	16726.706892 
+Recursion n. 42, error	16099.987853 
+Recursion n. 43, error	15356.230564 
+Recursion n. 44, error	14257.919881 
+Recursion n. 45, error	12730.999492 
+Recursion n. 46, error	11480.510729 
+Recursion n. 47, error	11125.428562 
+Recursion n. 48, error	11493.527715 
+Recursion n. 49, error	11795.776068 
+Recursion n. 50, error	11332.444467 
+Recursion n. 51, error	10075.346757 
+Recursion n. 52, error	8750.888719 
+Recursion n. 53, error	8311.623585 
+Recursion n. 54, error	9213.083171 
+Recursion n. 55, error	11262.777008 
+Recursion n. 56, error	13823.076207 
+Recursion n. 57, error	15865.328882 
+Recursion n. 58, error	16893.341640 
+Recursion n. 59, error	17352.672496 
+Recursion n. 60, error	17469.150241 
+Recursion n. 61, error	17222.122823 
+Recursion n. 62, error	16657.420627 
+Recursion n. 63, error	16203.759701 
+Recursion n. 64, error	16290.413766 
+Recursion n. 65, error	16287.849302 
+Recursion n. 66, error	15262.639817 
+Recursion n. 67, error	13189.079107 
+Recursion n. 68, error	10955.692696 
+Recursion n. 69, error	9095.181443 
+Recursion n. 70, error	7435.724905 
+Recursion n. 71, error	6139.139260 
+Recursion n. 72, error	5719.511494 
+Recursion n. 73, error	6350.790204 
+Recursion n. 74, error	7711.865247 
+Recursion n. 75, error	9187.147186 
+Recursion n. 76, error	9804.291233 
+Recursion n. 77, error	8781.079129 
+Recursion n. 78, error	6678.437559 
+Recursion n. 79, error	4871.649916 
+Recursion n. 80, error	4054.470133 
+Recursion n. 81, error	4014.509541 
+Recursion n. 82, error	4288.305311 
+Recursion n. 83, error	4604.405003 
+Recursion n. 84, error	4865.272719 
+Recursion n. 85, error	5073.005351 
+Recursion n. 86, error	5297.270792 
+Recursion n. 87, error	5655.494055 
+Recursion n. 88, error	6302.147393 
+Recursion n. 89, error	7429.778693 
+Recursion n. 90, error	9243.651896 
+Recursion n. 91, error	11741.122110 
+Recursion n. 92, error	13992.110851 
+Recursion n. 93, error	13780.915149 
+Recursion n. 94, error	10448.857685 
+Recursion n. 95, error	6504.263173 
+Recursion n. 96, error	3702.165546 
+Recursion n. 97, error	2046.597817 
+Recursion n. 98, error	1122.433200 
+Recursion n. 99, error	614.487187 
+Recursion n. 100, error	336.339454 
+Recursion n. 101, error	184.119650 
+Recursion n. 102, error	100.806778 
+Recursion n. 103, error	55.198920 
+Recursion n. 104, error	30.227808 
+Recursion n. 105, error	16.554127 
+Recursion n. 106, error	9.066123 
+Recursion n. 107, error	4.965323 
+Recursion n. 108, error	2.719447 
+Recursion n. 109, error	1.489425 
+Recursion n. 110, error	0.815755 
+Recursion n. 111, error	0.446790 
+Recursion n. 112, error	0.244708 
+Recursion n. 113, error	0.134028 
+Recursion n. 114, error	0.073408 
+Recursion n. 115, error	0.040206 
+Recursion n. 116, error	0.022021 
+Recursion n. 117, error	0.012061 
+Recursion n. 118, error	0.006606 
+Recursion n. 119, error	0.003618 
+Recursion n. 120, error	0.001982 
+Recursion n. 121, error	0.001085 
+Recursion n. 122, error	0.000594 
+Recursion n. 123, error	0.000326 
+Recursion n. 124, error	0.000178 
+Recursion n. 125, error	0.000098 
+
+Copying between device and host wall clock time = 4.867401
+
+Total number of recursions = 125
+Mean Shift wall clock time = 8.303131
