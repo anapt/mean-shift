@@ -88,14 +88,13 @@ __global__ void norm(Matrix mean_shift_vector, double *current_norm) {
     int row = blockIdx.x * blockDim.x + threadIdx.x;
 
     // performs calculations only if thread's indexes are within matrix bounds
-    if (row >= denominator.height){
+    if (row >= mean_shift_vector.height){
         return;
     }
 
 //    for (int column = 0; column < kernel_matrix.width; ++column){
 //        cell_value += kernel_matrix.elements[row * kernel_matrix.width + column];
 //    }
-    denominator.elements[row] = cell_value;
     // performs calculations only if thread's indexes are within matrix bounds
 //    if (row * mean_shift_vector.width + col >= mean_shift_vector.width * mean_shift_vector.height){
 //        return;
